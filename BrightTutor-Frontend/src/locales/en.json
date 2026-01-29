@@ -1,0 +1,1104 @@
+{
+  "schoolDashboard": {
+    "title": "School Administrator Dashboard",
+    "welcome": "Welcome back!",
+    "schoolAdmin": "School Administrator",
+    "refresh": "Refresh",
+    "logout": "Logout",
+    "welcomeBanner": {
+      "title": "Welcome to Tutori!",
+      "description": "Your school has been approved and your AI tutoring platform is ready. Start by adding teachers and students to begin the learning journey!"
+    },
+    "stats": {
+      "students": "Students",
+      "teachers": "Teachers", 
+      "classes": "Classes",
+      "parents": "Parents",
+      "totalCapacity": "Total Capacity: Unlimited",
+      "active": "Active",
+      "registered": "Registered"
+    },
+    "management": {
+      "title": "School Management",
+      "description": "Manage all aspects of your school's Tutori platform",
+      "cards": {
+        "studentManagement": {
+          "title": "Student Management",
+          "description": "Manage student enrollment and information"
+        },
+        "teacherManagement": {
+          "title": "Teacher Management", 
+          "description": "Manage teaching staff and assignments"
+        },
+        "parentManagement": {
+          "title": "Parent Management",
+          "description": "Manage parent accounts and child connections"
+        },
+        "subjectManagement": {
+          "title": "Subject Management",
+          "description": "Manage courses and learning materials"
+        },
+        "classroomManagement": {
+          "title": "Classroom Management",
+          "description": "Create and manage school classrooms"
+        }
+      }
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "description": "Common tasks to get started",
+      "buttons": {
+        "addStudent": "Add Student",
+        "addTeacher": "Add Teacher", 
+        "addParent": "Add Parent",
+        "addSubject": "Add Subject"
+      }
+    }
+  },
+  "studentManagement": {
+    "title": "Student Management",
+    "subtitle": "Manage your school's students",
+    "backToDashboard": "Back to Dashboard",
+    "exportData": "Export Data",
+    "addStudent": "Add Student",
+    "stats": {
+      "totalStudents": "Total Students",
+      "totalCapacity": "Total Capacity: Unlimited",
+      "gradeLevels": "Grade Levels",
+      "registeredParents": "Registered Parents"
+    },
+    "forms": {
+      "addNewStudent": "Add New Student",
+      "addNewStudentDesc": "Add a new student to your school",
+      "editStudent": "Edit Student",
+      "editStudentDesc": "Update student information and parent details",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "classroom": "Classroom",
+      "selectClassroom": "Select Classroom",
+      "noClassroomsAvailable": "No classrooms available - Create classrooms first",
+      "noClassroomsWarning": "No classrooms found. Please create classrooms first in the Classrooms section.",
+      "studentEmail": "Student Email (Optional)",
+      "dateOfBirth": "Date of Birth",
+      "notes": "Notes (Optional)",
+      "parentInformation": "Parent Information",
+      "createNewParent": "Create New Parent",
+      "selectExistingParent": "Select Existing Parent",
+      "noParent": "No Parent (Student Only)",
+      "parentName": "Parent Name",
+      "parentEmail": "Parent Email",
+      "parentPhone": "Parent Phone",
+      "selectParent": "Select Parent",
+      "searchParents": "Search parents by name, email, or username...",
+      "parentsFound": "parents found",
+      "noParentsAvailable": "No parents available. Create parents first.",
+      "children": "children",
+      "updateParentInfo": "Update Parent Info",
+      "selectDifferentParent": "Select Different Parent",
+      "selectParentLabel": "Select Parent",
+      "credentialsNote": "Note: Student login credentials will remain unchanged. Only profile information will be updated.",
+      "addStudentButton": "Add Student",
+      "creatingStudent": "Creating Student...",
+      "updateStudentButton": "Update Student",
+      "cancel": "Cancel",
+      "optional": "(Optional)",
+      "emailWillBe": "Email will be:",
+      "enterUsernameOnly": "Enter username only - @tutori.io will be added automatically",
+      "placeholders": {
+        "firstName": "Mohamed",
+        "lastName": "Ould Ahmed",
+        "studentEmail": "mohamed@example.com",
+        "parentName": "Ahmed Ould Mohamed",
+        "parentEmail": "ahmed.parent@example.com",
+        "parentPhone": "+222 XX XX XX XX",
+        "notes": "Any special notes or information",
+        "searchParents": "Search parents by name, email, or username...",
+        "selectClassroom": "Select Classroom"
+      }
+    },
+    "studentsList": {
+      "title": "Your Students",
+      "description": "Manage your student enrollment and information",
+      "searchPlaceholder": "Search students... (name, username, age)",
+      "found": "found",
+      "noStudentsYet": "No Students Enrolled Yet",
+      "noStudentsDesc": "Add your first student to start building your school community.",
+      "addFirstStudent": "Add Your First Student",
+      "username": "Username:",
+      "email": "Email:",
+      "parent": "Parent:",
+      "edit": "Edit",
+      "credentials": "Credentials",
+      "getAIReport": "Get AI Report",
+      "generating": "Generating...",
+      "parentLogin": "Parent Login",
+      "remove": "Remove"
+    },
+    "credentials": {
+      "studentAccountCreated": "Student Account Created!",
+      "parentAccountCreated": "Parent Account Created!",
+      "loginCredentials": "Login Credentials:",
+      "username": "Username:",
+      "email": "Email:",
+      "password": "Password:",
+      "copyStudentInfo": "Copy Student Info",
+      "copyParentInfo": "Copy Parent Info",
+      "close": "Close",
+      "shareCredentials": "Please share these credentials with the student/parent.",
+      "studentLoginCredentials": "Student Login Credentials",
+      "parentLoginCredentials": "Parent Login Credentials",
+      "name": "Name:",
+      "copyToClipboard": "Copy to Clipboard",
+      "childInfo": "Child:",
+      "loginWithEmailPassword": "Login with EMAIL and PASSWORD"
+    },
+    "aiReport": {
+      "title": "AI Progress Report",
+      "recentProgress": "Recent Progress",
+      "strengths": "Strengths",
+      "areasForImprovement": "Areas for Improvement",
+      "adviceForParents": "Advice for Parents",
+      "reportBasedOn": "Report based on:",
+      "chatMessages": "chat messages",
+      "daysWithActivity": "days with activity",
+      "generated": "Generated:",
+      "print": "Print",
+      "close": "Close"
+    },
+    "alerts": {
+      "fillRequiredFields": "Please fill in all required fields: First Name, Last Name, Date of Birth, and Grade.",
+      "fillParentInfo": "Please fill in parent name, email, and phone for new parent registration.",
+      "selectExistingParent": "Please select an existing parent.",
+      "studentCreated": "Student created successfully!",
+      "studentUpdated": "Student updated successfully!",
+      "studentDeleted": "Student deleted successfully!",
+      "errorCreating": "Failed to create student. Please try again.",
+      "errorUpdating": "Failed to update student. Please try again.",
+      "errorDeleting": "Failed to delete student. Please try again.",
+      "credentialsCopied": "Credentials copied to clipboard!",
+      "parentCredentialsNotAvailable": "Parent credentials not available for this student.",
+      "sessionExpired": "Your session has expired. Would you like to login again?",
+      "failedToCreate": "Failed to create student:",
+      "failedToUpdate": "Error:",
+      "failedToDelete": "Error:",
+      "failedToGenerateReport": "Failed to generate report:",
+      "failedToGenerateReportTryAgain": "Failed to generate report. Please try again."
+    }
+  },
+  "common": {
+    "language": "Language",
+    "selectLanguage": "Select Language"
+  },
+  "teacherManagement": {
+    "title": "Teacher Management",
+    "subtitle": "Manage your school's teaching staff",
+    "backToDashboard": "Back to Dashboard",
+    "addTeacher": "Add Teacher",
+    "stats": {
+      "activeTeachers": "Active Teachers",
+      "totalCapacity": "Total Capacity: Unlimited",
+      "schoolSubjects": "School Subjects",
+      "schoolClassrooms": "School Classrooms"
+    },
+    "forms": {
+      "addNewTeacher": "Add New Teacher",
+      "addNewTeacherDesc": "Add a new teacher to your school",
+      "editTeacher": "Edit Teacher",
+      "editTeacherDesc": "Update teacher information (credentials will remain unchanged)",
+      "fullName": "Full Name",
+      "emailAddress": "Email Address",
+      "subjects": "Subjects",
+      "subjectsDesc": "Select all that apply",
+      "assignedClassrooms": "Assigned Classrooms",
+      "assignedClassroomsDesc": "Select all that apply",
+      "selected": "selected",
+      "noSubjectsAvailable": "No subjects available. Please create subjects first.",
+      "noClassroomsAvailable": "No classrooms available. Please create classrooms first.",
+      "createSubjects": "Create Subjects",
+      "createClassrooms": "Create Classrooms",
+      "selectClassroomsDesc": "Select the classrooms this teacher will be responsible for",
+      "automaticCredentials": "Automatic Credentials:",
+      "automaticCredentialsDesc": "Username and password will be generated automatically and shown after creation.",
+      "credentialsNote": "Note:",
+      "credentialsNoteDesc": "Login credentials (email/password) will remain unchanged. Only profile information will be updated.",
+      "addTeacherButton": "Add Teacher",
+      "creating": "Creating...",
+      "updateTeacherButton": "Update Teacher",
+      "updating": "Updating...",
+      "cancel": "Cancel",
+      "placeholders": {
+        "fullName": "Ahmed Ould Mohamed",
+        "emailAddress": "ahmed.teacher@school.edu"
+      }
+    },
+    "teachersList": {
+      "title": "Your Teachers",
+      "description": "Manage your teaching staff and their assignments",
+      "searchPlaceholder": "Search teachers... (name, email, subject)",
+      "found": "found",
+      "noTeachersYet": "No Teachers Added Yet",
+      "noTeachersDesc": "Add your first teacher to start building your school's teaching team.",
+      "addFirstTeacher": "Add Your First Teacher",
+      "loginEmail": "Login Email",
+      "subjects": "Subjects:",
+      "classes": "Classes:",
+      "noClassesAssigned": "No classes assigned",
+      "edit": "Edit",
+      "credentials": "Credentials",
+      "remove": "Remove"
+    },
+    "credentials": {
+      "teacherLoginCredentials": "Teacher Login Credentials",
+      "loginCredentials": "Login Credentials:",
+      "email": "Email:",
+      "password": "Password:",
+      "copyTeacherInfo": "Copy Teacher Info",
+      "close": "Close",
+      "shareCredentials": "Please share these credentials with the teacher.",
+      "subjects": "Subjects:",
+      "classes": "Classes:",
+      "none": "None"
+    },
+    "setup": {
+      "setupRequired": "Setup Required:",
+      "createSubjectsAndClassrooms": "You need to create subjects and classrooms before adding teachers.",
+      "createSubjectsOnly": "You need to create subjects before adding teachers.",
+      "createClassroomsOnly": "You need to create classrooms before adding teachers."
+    },
+    "loading": "Loading teacher management..."
+  },
+  "parentManagement": {
+    "title": "Parent Management",
+    "subtitle": "Manage parent accounts and child connections",
+    "backToDashboard": "Back to Dashboard",
+    "addParent": "Add Parent",
+    "stats": {
+      "registeredParents": "Registered Parents",
+      "connectedStudents": "Connected Students",
+      "unlinkedStudents": "Unlinked Students"
+    },
+    "forms": {
+      "addNewParent": "Add New Parent",
+      "addNewParentDesc": "Create a parent account and link to children",
+      "editParent": "Edit Parent",
+      "editParentDesc": "Update parent information (credentials will remain unchanged)",
+      "fullName": "Full Name",
+      "emailAddress": "Email Address",
+      "phoneNumber": "Phone Number",
+      "selectChildren": "Select Children",
+      "selectChildrenDesc": "Optional",
+      "selected": "selected",
+      "noStudentsAvailable": "No students available. Add students first.",
+      "searchStudents": "Search students by name, email, or username...",
+      "searchStudentsEdit": "Search students by name or classroom...",
+      "studentsFound": "students found",
+      "noStudentsFound": "No students found matching",
+      "alreadyHasParent": "Already has parent",
+      "hasOtherParent": "Has other parent",
+      "automaticCredentials": "Automatic Credentials:",
+      "automaticCredentialsDesc": "Email and password will be generated automatically and shown after creation.",
+      "credentialsNote": "Note:",
+      "credentialsNoteDesc": "Login credentials (email/password) will remain unchanged. Only profile information will be updated.",
+      "createParentButton": "Create Parent Account",
+      "creating": "Creating Parent...",
+      "updateParentButton": "Update Parent",
+      "updating": "Updating...",
+      "cancel": "Cancel",
+      "placeholders": {
+        "fullName": "Fatima Mint Ahmed",
+        "emailAddress": "fatima.parent@example.com",
+        "phoneNumber": "+222 XX XX XX XX"
+      }
+    },
+    "parentsList": {
+      "title": "Parent Accounts",
+      "description": "Manage parent accounts and their children connections",
+      "searchPlaceholder": "Search parents... (name, email, phone, child)",
+      "found": "found",
+      "noParentsYet": "No Parent Accounts Yet",
+      "noParentsDesc": "Create parent accounts to enable family engagement and progress tracking.",
+      "createFirstParent": "Create First Parent Account",
+      "phone": "Phone:",
+      "children": "Children:",
+      "noChildrenLinked": "No children linked",
+      "edit": "Edit",
+      "credentials": "Credentials",
+      "remove": "Remove"
+    },
+    "credentials": {
+      "parentLoginCredentials": "Parent Login Credentials",
+      "loginCredentials": "Login Credentials:",
+      "email": "Email:",
+      "password": "Password:",
+      "copyParentInfo": "Copy Parent Info",
+      "close": "Close",
+      "shareCredentials": "Please share these credentials with the parent.",
+      "children": "Children:",
+      "emailLabel": "Email:",
+      "childrenLabel": "Children:",
+      "copiedToClipboard": "Parent credentials copied to clipboard!"
+    },
+    "loading": "Loading parent management..."
+  },
+  "subjectManagement": {
+    "title": "Subject Management",
+    "subtitle": "Create and manage school subjects",
+    "backToDashboard": "Back to Dashboard",
+    "createSubject": "Create Subject",
+    "subjectInformation": {
+      "title": "Subject Information",
+      "description": "Subjects form the core of the AI's knowledge base for tutoring.",
+      "newSubjectName": "New Subject Name",
+      "editSubjectName": "Edit Subject Name",
+      "subjectTaughtIn": "Subject Taught In",
+      "subjectType": "Subject Type",
+      "languageDescription": "This tells the AI which language to use when helping students with this subject",
+      "typeDescription": "This helps the AI understand the subject category for curriculum mapping.",
+      "placeholders": {
+        "subjectName": "e.g., Mathematics, Science, Physics",
+        "selectSubjectType": "Select a subject type"
+      },
+      "subjectTypes": {
+        "MATH": "Mathematics (Mathématiques)",
+        "SCIENCE": "Science (Sciences)",
+        "PHYSICS": "Physics (Physique)"
+      },
+      "languageOptions": {
+        "Arabic": "Arabic (العربية)",
+        "French": "French (Français)",
+        "English": "English"
+      },
+      "buttons": {
+        "cancelEdit": "Cancel Edit",
+        "createSubject": "Create Subject",
+        "updateSubject": "Update Subject",
+        "creating": "Creating...",
+        "updating": "Updating..."
+      }
+    },
+    "subjectsList": {
+      "title": "Your Subjects",
+      "subjectsListed": "subjects listed",
+      "subjectListed": "subject listed",
+      "noSubjectsFound": "No subjects found for",
+      "searchPlaceholder": "Search subjects...",
+      "noSubjectsYet": "No subjects created yet",
+      "noSubjectsDesc": "Create your first subject to get started.",
+      "createFirstSubject": "Create First Subject",
+      "language": "Language:",
+      "id": "ID:",
+      "created": "Created:",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "alerts": {
+      "subjectNameRequired": "Subject name is required!",
+      "duplicateName": "A subject with this name already exists!",
+      "authRequired": "Authentication required. Please login again.",
+      "subjectCreated": "Subject created successfully!",
+      "subjectUpdated": "Subject updated successfully!",
+      "subjectDeleted": "Subject has been permanently deleted.",
+      "deleteConfirmation": "Are you absolutely sure you want to permanently delete",
+      "deleteConfirmationEnd": "? This action cannot be undone.",
+      "typeSubjectName": "To confirm deletion, please type the subject name exactly:",
+      "nameNotMatch": "Subject name does not match. Deletion cancelled for safety.",
+      "networkError": "Network error. Please try again.",
+      "dangerWarning": "DANGER: This will permanently delete the subject."
+    },
+    "loading": "Loading subject management..."
+  },
+  "loginPage": {
+    "backToHome": "Back to Home",
+    "welcomeBack": "Welcome Back!",
+    "signInToTutori": "Sign in to Tutori",
+    "signIn": "Sign In",
+    "chooseAccountType": "Choose your account type and sign in",
+    "userTypes": {
+      "student": "Student",
+      "parent": "Parent", 
+      "teacher": "Teacher",
+      "admin": "School Admin"
+    },
+    "inputLabels": {
+      "studentUsername": "Student Username",
+      "parentUsername": "Parent Username",
+      "emailAddress": "Email Address",
+      "adminEmail": "Admin Email",
+      "password": "Password"
+    },
+    "placeholders": {
+      "studentUsername": "your.username",
+      "parentUsername": "parent.username",
+      "teacherEmail": "teacher@school.edu.mr",
+      "adminEmail": "admin@school.edu.mr",
+      "password": "Enter your password"
+    },
+    "buttonTexts": {
+      "startLearning": "🎮 Start Learning",
+      "viewChildProgress": "📊 View Child Progress",
+      "openDashboard": "📚 Open Dashboard",
+      "adminDashboard": "🔑 Admin Dashboard",
+      "signingIn": "🔄 Signing in...",
+      "applyForSchoolAccount": "📝 Apply for School Account"
+    },
+    "messages": {
+      "noAccountYet": "Don't have an account yet?",
+      "needHelp": "Need help? Contact support:",
+      "contactEmail": "📧 contact@learn-to-win.com",
+      "contactPhone": "📞 +222 43 22 77 48",
+      "invalidUserType": "Invalid user type selected",
+      "loginFailed": "Login failed. Please check your credentials.",
+      "networkError": "Network error. Please try again."
+    }
+  },
+  "teacherDashboard": {
+    "title": "Teacher Dashboard",
+    "welcomeBack": "Welcome back!",
+    "logout": "Logout",
+    "welcomeBanner": {
+      "title": "Welcome to Your Teaching Dashboard!",
+      "subtitle": "Manage your classes, students, and teaching materials all in one place."
+    },
+    "stats": {
+      "subjects": "Subjects",
+      "classes": "Classes", 
+      "school": "School",
+      "yourInstitution": "Your Institution"
+    },
+    "lessonPlans": {
+      "title": "Recent Lesson Plans",
+      "subtitle": "Your latest teaching materials and assignments",
+      "createNew": "Create New",
+      "due": "Due:",
+      "classes": "classes",
+      "class": "class",
+      "edit": "Edit",
+      "viewAll": "View all",
+      "lessonPlans": "lesson plans",
+      "noPlans": "No lesson plans yet",
+      "noPlansSubtitle": "Create your first lesson plan to get started with teaching",
+      "createFirst": "Create Your First Lesson Plan"
+    },
+    "teachingTools": {
+      "title": "Teaching Tools",
+      "subtitle": "Access your teaching resources and manage your classes",
+      "myStudents": "My Students",
+      "myStudentsDesc": "View and manage your students",
+      "lessonPlans": "Lesson Plans",
+      "lessonPlansDesc": "Create and manage classroom lesson plans"
+    },
+    "loading": "Loading teacher dashboard..."
+  },
+  "teacherStudents": {
+    "title": "My Students",
+    "subtitle": "Manage students in your assigned classrooms",
+    "backToDashboard": "← Back to Dashboard",
+    "myClassrooms": {
+      "title": "My Classrooms",
+      "subtitle": "Select a classroom to view students",
+      "students": "students"
+    },
+    "addStudent": {
+      "title": "Add New Student",
+      "subtitle": "Add a student to one of your assigned classrooms",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "myClassroom": "My Classroom",
+      "studentEmail": "Student Email (Optional)",
+      "dateOfBirth": "Date of Birth (Optional)",
+      "notes": "Notes (Optional)",
+      "parentInformation": "Parent Information",
+      "createNewParent": "Create New Parent",
+      "selectExistingParent": "Select Existing Parent",
+      "parentName": "Parent Name",
+      "parentEmail": "Parent Email",
+      "parentPhone": "Parent Phone",
+      "selectParent": "Select Parent",
+      "chooseExistingParent": "Choose existing parent...",
+      "children": "children",
+      "addStudent": "Add Student",
+      "creatingStudent": "Creating Student...",
+      "cancel": "Cancel",
+      "selectYourClassroom": "Select Your Classroom"
+    },
+    "studentsList": {
+      "title": "Students in",
+      "subtitle": "Viewing students in",
+      "selectClassroom": "Select a classroom tab to view students",
+      "searchPlaceholder": "Search students... (name, username, age)",
+      "found": "found",
+      "noStudentsAdded": "No Students Added Yet",
+      "noStudentsAddedSubtitle": "Add your first student to start building your classroom community.",
+      "addFirstStudent": "Add Your First Student",
+      "noStudentsFound": "No Students Found",
+      "noStudentsFoundSubtitle": "No students match your search criteria.",
+      "noStudentsInClassroom": "No students in",
+      "matchYourSearch": "match your search.",
+      "clearSearch": "Clear Search",
+      "username": "Username:",
+      "email": "Email:",
+      "parent": "Parent:",
+      "age": "Age",
+      "getAIReport": "Get AI Report",
+      "generating": "Generating..."
+    },
+    "credentials": {
+      "title": "Student Created Successfully!",
+      "subtitle": "Here are the login credentials:",
+      "student": "Student:",
+      "parent": "Parent:",
+      "username": "Username:",
+      "password": "Password:",
+      "copyCredentials": "Copy Credentials",
+      "close": "Close",
+      "shareCredentials": "Please share these credentials with the student and parent safely.",
+      "copiedToClipboard": "Credentials copied to clipboard!"
+    },
+    "alerts": {
+      "fillRequiredFields": "Please fill in all required fields.",
+      "onlyAssignedClassrooms": "You can only add students to your assigned classrooms.",
+      "unableToFindClassId": "Unable to find class ID. Please try again.",
+      "errorCreatingStudent": "Error:",
+      "failedToAddStudent": "Failed to add student. Please try again.",
+      "failedToGenerateReport": "Failed to generate report:",
+      "failedToGenerateReportGeneric": "Failed to generate report. Please try again."
+    },
+    "loading": "Loading your students..."
+  },
+  "parentDashboard": {
+    "title": "Parent Dashboard",
+    "welcomeBack": "Welcome back!",
+    "logout": "Logout",
+    "welcomeBanner": {
+      "title": "Welcome to Your Parent Dashboard!",
+      "subtitle": "Track your children's progress and stay connected with their education."
+    },
+    "stats": {
+      "children": "Children",
+      "underYourCare": "Under your care",
+      "school": "School",
+      "status": "Status",
+      "activeParent": "Active Parent"
+    },
+    "childrenCards": {
+      "class": "Class:",
+      "getAIReport": "Get AI Report",
+      "generating": "Generating...",
+      "studentDetails": "Student Details",
+      "noChildrenFound": "No Children Found",
+      "noChildrenSubtitle": "No children are currently assigned to your account. Please contact your school administrator if this seems incorrect."
+    },
+    "alerts": {
+      "failedToGenerateReport": "Failed to generate report:",
+      "failedToGenerateReportGeneric": "Failed to generate report. Please try again."
+    },
+    "loading": "Loading parent dashboard...",
+    "studentDetailsModal": {
+      "title": "Student Details",
+      "subtitle": "Complete information",
+      "basicInformation": "Basic Information",
+      "fullName": "Full Name",
+      "studentEmail": "Student Email",
+      "dateOfBirth": "Date of Birth",
+      "age": "Age",
+      "yearsOld": "years old",
+      "notProvided": "Not provided",
+      "notSpecified": "Not specified",
+      "academicInformation": "Academic Information",
+      "class": "Class",
+      "school": "School",
+      "close": "Close"
+    }
+  },
+  "landingPage": {
+    "navigation": {
+      "about": "About",
+      "contact": "Contact",
+      "getStarted": "Register your school"
+    },
+    "hero": {
+      "tagline": "Revolutionary AI-Powered Education",
+      "title": "Every Student Deserves",
+      "titleHighlight": "Personal Attention",
+      "description": "Most students receive",
+      "timeHighlight": "only seconds of real personalized help in class.",
+      "descriptionEnd": "Tutori gives every student an AI-powered learning companion that understands how they learn.",
+      "transformButton": "Sign up as a student",
+      "watchDemoButton": "Watch Demo",
+      "roleButtonStudents": "Students",
+      "roleButtonParent": "Parent",
+      "roleButtonSchool": "School",
+      "roleButtonAriaStudents": "Sign up as a student",
+      "roleButtonAriaParent": "Sign up as a parent",
+      "roleButtonAriaSchool": "Register your school",
+      "registerAsStudent": "🎓 Register as Student"
+    },
+    "problem": {
+      "title": "The Challenge Every",
+      "titleHighlight": "Student",
+      "titleEnd": "Faces",
+      "timeDeficit": {
+        "title": "Not Enough Time for Each Student",
+        "description": "In crowded classrooms, most students get just",
+        "timeHighlight": "seconds of personal help per day",
+        "source": "(Education Week 2024)"
+      },
+      "overwhelmed": {
+        "title": "Falling Behind Silently",
+        "description": "",
+        "percentageHighlight": "Many students",
+        "descriptionEnd": "struggle in silence—too shy, too confused, or moving at a different pace than the rest of the class."
+      },
+      "studentsFall": {
+        "title": "Bright Minds Go Unnoticed",
+        "description": "Without personalized attention, thousands of capable students never unlock their true potential"
+      }
+    },
+    "solution": {
+      "title": "How Tutori",
+      "titleHighlight": "Empowers Students",
+      "subtitle": "Real learning journeys from students who finally got the personal attention they needed",
+      "ahmedBreakthrough": {
+        "title": "Ahmed's Breakthrough",
+        "description": "Struggled with fractions. Tutori used visual explanations and his learning style.",
+        "highlight": "Now he teaches others."
+      },
+      "fatimaConfidence": {
+        "title": "Fatima's Confidence",
+        "description": "Was too shy to ask questions in class. Tutori became her AI study partner.",
+        "highlight": "Now she participates daily with confidence."
+      },
+      "teacherReality": {
+        "title": "What Students Get with Tutori",
+        "insights": "Personalized learning support anytime",
+        "personalized": "Explains topics in the way they understand",
+        "tutor": "Instant feedback and step-by-step help",
+        "smarter": "Builds confidence, not just grades"
+      }
+    },
+    "evidence": {
+      "title": "Backed by Real",
+      "titleHighlight": "Educational Research",
+      "subtitle": "Our approach is backed by decades of educational research and real classroom results",
+      "mitStudy": "MIT Study: Personalized learning increases student retention by 42%",
+      "educationWeek": "Education Week 2024: Students need 3x more personal support for effective learning",
+      "teacherEffectiveness": "Learning Science Institute: Immediate feedback accelerates progress",
+      "bloomResearch": "Bloom's Research: 1-on-1 learning boosts achievement by 2 grade levels",
+      "learningScience": "Learning Science Institute: Immediate feedback accelerates progress",
+      "stanfordResearch": "Stanford Research: Adaptive learning doubles comprehension rates"
+    },
+    "empowerment": {
+      "quote": "Tutori doesn't replace teachers—it empowers students to learn at their own pace, with personal support available 24/7.",
+      "highlight": "Tutori makes learning finally feel personal."
+    },
+    "footer": {
+      "description": "Empowering students everywhere to reach their full potential.",
+      "about": "About",
+      "contact": "Contact"
+    }
+  },
+  "aboutPage": {
+    "navigation": {
+      "backToHome": "Back to Home"
+    },
+    "hero": {
+      "tagline": "Our Story",
+      "title": "Our Story:",
+      "titleHighlight": "Empowering Teachers",
+      "description": "Born from the frustration of educators who knew they could do more, Tutori was created to give teachers the superpower they deserve."
+    },
+    "story": {
+      "title": "Why I Created Tutori",
+      "paragraph1": "I've been teaching English for six years, and I really love what I do. I love my students, and I always try my best to help them.",
+      "paragraph2": "But when I was teaching in classrooms, there was always the same problem—some students were left behind. Not because they didn't care or weren't smart, but because they just didn't understand the lesson right away. And I couldn't help everyone the way I wanted to.",
+      "paragraph3": "There were only six hours in the day, and too many students who needed something different. Some needed more time, others needed things explained in another way. But the class had to move forward, even if not everyone was ready.",
+      "paragraph4": "I became a teacher to help students learn and grow. But it's so difficult when you don't have the time to give each student what they really need.",
+      "paragraph5": "That's why I created Tutori.",
+      "paragraph6": "A few years later, I realized we could build a tool where every student has their own personal AI tutor—one that understands the teacher's lesson plan, gets to know the student, and explains the lesson in the way that student learns best.",
+      "paragraph7": "Now no student has to be left behind."
+    },
+    "quote": {
+      "text": "\"I don't want AI to teach my students. I want AI to help me teach my students better.\"",
+      "author": "— Sarah Mitchell, 5th Grade Teacher"
+    },
+    "mission": {
+      "title": "Our Mission:",
+      "titleHighlight": "Teacher Superpowers",
+      "personalizedTeaching": {
+        "title": "Personalized Teaching",
+        "description": "Every student gets exactly what they need, exactly when they need it."
+      },
+      "instantInsights": {
+        "title": "Instant Insights",
+        "description": "Know immediately which students need help and exactly how to help them."
+      },
+      "amplifiedImpact": {
+        "title": "Amplified Impact",
+        "description": "Reach every student in your classroom with the depth they deserve."
+      }
+    },
+    "values": {
+      "title": "What We Believe",
+      "teachersIrreplaceable": {
+        "title": "Teachers Are Irreplaceable",
+        "description": "No AI can replace the spark in a teacher's eyes when a student finally \"gets it.\" We build technology that makes those moments happen more often."
+      },
+      "everyStudentMatters": {
+        "title": "Every Student Matters",
+        "description": "The quiet kid in the back row deserves the same attention as the star student. Technology should help teachers reach every single learner."
+      },
+      "learningJoyful": {
+        "title": "Learning Should Be Joyful",
+        "description": "When students are engaged and teachers feel empowered, magic happens. We design for those magical moments."
+      },
+      "excellenceAccessible": {
+        "title": "Excellence Is Accessible",
+        "description": "Every classroom, regardless of resources, should have access to world-class educational technology that actually works."
+      }
+    },
+    "cta": {
+      "title": "Ready to Become a",
+      "titleHighlight": "Super Teacher",
+      "titleEnd": "?",
+      "description": "Join educators who've discovered what it feels like to truly reach every student in their classroom.",
+      "button": "Get Started Today"
+    },
+    "footer": {
+      "description": "Empowering teachers, transforming education.",
+      "home": "Home",
+      "contact": "Contact"
+    }
+  },
+  "contactPage": {
+    "navigation": {
+      "backToHome": "Back to Home"
+    },
+    "hero": {
+      "tagline": "Let's Connect",
+      "title": "Get in",
+      "titleHighlight": "Touch",
+      "description": "Ready to transform your classroom? We're here to help you get started and support you every step of the way."
+    },
+    "contactInfo": {
+      "emailUs": {
+        "title": "Email Us",
+        "description": "Send us a message anytime",
+        "email": "contact@learn-to-win.com"
+      },
+      "callUs": {
+        "title": "Call Us",
+        "description": "Speak with our team directly",
+        "phone": "+222 4322 7748"
+      },
+      "quickResponse": {
+        "title": "Quick Response",
+        "description": "We typically respond within 24 hours"
+      }
+    },
+    "helpSection": {
+      "title": "How Can We Help?",
+      "gettingStarted": {
+        "title": "Getting Started",
+        "description": "New to Tutori? We'll help you set up your classroom and get your first students learning."
+      },
+      "technicalSupport": {
+        "title": "Technical Support",
+        "description": "Having trouble with the platform? Our team will get you back up and running quickly."
+      },
+      "partnershipOpportunities": {
+        "title": "Partnership Opportunities",
+        "description": "Interested in bringing Tutori to your school or district? Let's discuss how we can help."
+      },
+      "featureRequests": {
+        "title": "Feature Requests",
+        "description": "Have an idea for making Tutori even better? We love hearing from our teacher community."
+      }
+    },
+    "officeHours": {
+      "title": "When We're Available",
+      "emailSupport": {
+        "title": "Email Support",
+        "hours": "24/7",
+        "description": "Always here when you need us"
+      },
+      "phoneSupport": {
+        "title": "Phone Support",
+        "hours": "Mon-Fri, 8 AM - 6 PM"
+      },
+      "liveChat": {
+        "title": "Live Chat",
+        "hours": "Coming Soon",
+        "description": "Real-time assistance"
+      }
+    },
+    "cta": {
+      "title": "Ready to Get Started?",
+      "description": "Don't wait—your students deserve the best. Join teachers who are already transforming their classrooms with Tutori.",
+      "button": "Start Your Journey"
+    },
+    "footer": {
+      "description": "We're here to support your teaching journey.",
+      "home": "Home",
+      "about": "About"
+    }
+  },
+  "classroomManagement": {
+    "title": "Classroom Management",
+    "subtitle": "Create and manage school classrooms",
+    "backToDashboard": "Back to Dashboard",
+    "createClassroom": "Create Classroom",
+    "stats": {
+      "totalClassrooms": "Total Classrooms",
+      "totalStudents": "Total Students",
+      "totalTeachers": "Total Teachers",
+      "availableSubjects": "Available Subjects"
+    },
+    "warnings": {
+      "noSubjectsYet": "No subjects created yet!",
+      "noSubjectsDesc": "You need to create subjects before you can create classrooms.",
+      "createSubjectsFirst": "Create Subjects First"
+    },
+    "classroomsList": {
+      "title": "Your Classrooms",
+      "noClassroomsFound": "No classrooms found matching",
+      "noClassroomsYet": "No classrooms created yet. Start by creating your first classroom.",
+      "classroomsCreated": "classrooms created",
+      "classroomCreated": "classroom created",
+      "found": "found",
+      "searchPlaceholder": "Search classrooms... (name, count, date, subjects)",
+      "noClassroomsYetTitle": "No classrooms yet",
+      "noClassroomsYetDesc": "Create your first classroom to get started",
+      "createFirstClassroom": "Create First Classroom",
+      "students": "students",
+      "teachers": "teachers",
+      "created": "Created",
+      "more": "more",
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "classroomDetails": {
+      "title": "Classroom Details",
+      "selectClassroom": "Select a classroom to view details",
+      "detailsFor": "Details for",
+      "overview": "Overview",
+      "classroomName": "Classroom Name:",
+      "students": "Students:",
+      "teachers": "Teachers:",
+      "subjects": "Subjects:",
+      "created": "Created:",
+      "subjectsList": "Subjects",
+      "studentsList": "Students",
+      "teachersList": "Teachers",
+      "noStudentsOrTeachers": "No students or teachers assigned yet",
+      "selectClassroomToView": "Select a classroom to view its details"
+    },
+    "forms": {
+      "createNewClassroom": "Create New Classroom",
+      "createNewClassroomDesc": "Enter classroom details and select subjects for AI personalization",
+      "editClassroom": "Edit Classroom",
+      "editClassroomDesc": "Update classroom name and subjects",
+      "classroomName": "Classroom Name",
+      "classroomNamePlaceholder": "e.g., Grade 1A, Mathematics Room, Science Lab",
+      "classroomYear": "Choose Classroom Year",
+      "chooseClassroomYear": "Choose Classroom Year",
+      "selectClassroomYear": "Select a classroom year",
+      "classroomYears": {
+        "PREMIER_COLLEGE": "Premier Collège (Year 1)",
+        "DEUXIEME_COLLEGE": "Deuxième Collège (Year 2)",
+        "TROISIEME_COLLEGE": "Troisième Collège (Year 3)",
+        "QUATRIEME_COLLEGE": "Quatrième Collège (Year 4)"
+      },
+      "classroomYearDesc": "This helps the AI understand the student's curriculum level for personalized tutoring.",
+      "subjects": "Select Subjects",
+      "selected": "selected",
+      "subjectsDesc": "Choose subjects that students in this classroom will study. This helps the AI provide personalized tutoring.",
+      "noSubjectsAvailable": "No subjects available. Please create subjects first.",
+      "createSubjects": "Create Subjects",
+      "aiPersonalization": "AI Personalization:",
+      "aiPersonalizationDesc": "The subjects you select will help our AI tutor provide personalized learning experiences for students in this classroom.",
+      "note": "Note:",
+      "noteDesc": "Changing subjects may affect AI personalization for students already in this classroom.",
+      "cancel": "Cancel",
+      "createClassroom": "Create Classroom",
+      "creating": "Creating...",
+      "updateClassroom": "Update Classroom",
+      "updating": "Updating..."
+    },
+    "alerts": {
+      "enterClassroomName": "Please enter a classroom name.",
+      "selectAtLeastOneSubject": "Please select at least one subject for this classroom.",
+      "classroomNameExists": "A classroom with this name already exists.",
+      "failedToCreate": "Failed to create classroom. Please try again.",
+      "classroomUpdated": "Classroom updated successfully!",
+      "failedToUpdate": "Failed to update classroom. Please try again.",
+      "cannotDeleteWithStudents": "Cannot delete",
+      "cannotDeleteWithTeachers": "because it has",
+      "studentsAnd": "students and",
+      "teachersAssigned": "teachers assigned. Please reassign them first.",
+      "dangerWarning": "DANGER: This will permanently delete the classroom.",
+      "typeClassroomName": "To confirm deletion, please type the classroom name exactly:",
+      "nameNotMatch": "Classroom name does not match. Deletion cancelled for safety.",
+      "deleteConfirmation": "Are you absolutely sure you want to permanently delete",
+      "deleteConfirmationEnd": "? This action cannot be undone.",
+      "classroomDeleted": "Classroom has been permanently deleted."
+    },
+    "loading": "Loading classrooms..."
+  },
+  "modals": {
+    "titles": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Information",
+      "requiredFields": "Required Fields",
+      "deletionFailed": "Deletion Failed",
+      "creationFailed": "Creation Failed",
+      "updateFailed": "Update Failed",
+      "networkError": "Network Error",
+      "nameMismatch": "Name Mismatch",
+      "authenticationRequired": "Authentication Required",
+      "noParent": "No Parent",
+      "copied": "Copied",
+      "reportGenerationFailed": "Report Generation Failed",
+      "deleteSubject": "DANGER: Delete Subject"
+    },
+    "messages": {
+      "studentDeleted": "Student deleted successfully!",
+      "studentUpdated": "Student updated successfully!",
+      "studentCreated": "Student created successfully!",
+      "subjectDeleted": "deleted successfully!",
+      "subjectUpdated": "Subject updated successfully!",
+      "subjectCreated": "Subject created successfully!",
+      "credentialsCopied": "Credentials copied to clipboard!",
+      "parentNotAvailable": "Parent credentials not available for this student.",
+      "fillRequiredFields": "Please fill in all required fields: First Name, Last Name, and Grade.",
+      "fillParentInfo": "Please fill in parent name and email for new parent registration.",
+      "selectExistingParent": "Please select an existing parent.",
+      "selectSubjectType": "Please select a subject type",
+      "failedToCreateStudent": "Failed to create student. Please try again.",
+      "failedToUpdateStudent": "Failed to update student. Please try again.",
+      "failedToDeleteStudent": "Failed to delete student. Please try again.",
+      "failedToCreateSubject": "Failed to create subject:",
+      "failedToUpdateSubject": "Failed to update subject:",
+      "failedToDeleteSubject": "Failed to delete subject:",
+      "failedToGenerateReport": "Failed to generate report:",
+      "networkError": "Network error. Please try again.",
+      "nameNotMatch": "Name does not match. Action cancelled.",
+      "deleteSubjectWarning": "This will permanently delete the subject",
+      "deleteSubjectConfirm": "To confirm deletion, please type the subject name exactly:",
+      "typeSubjectName": "Type subject name:",
+      "teacherDeleted": "Teacher deleted successfully!",
+      "teacherUpdated": "Teacher updated successfully!",
+      "teacherCreated": "Teacher created successfully!",
+      "failedToCreateTeacher": "Failed to create teacher. Please try again.",
+      "failedToUpdateTeacher": "Failed to update teacher. Please try again.",
+      "failedToDeleteTeacher": "Failed to delete teacher. Please try again.",
+      "fillTeacherRequiredFields": "Please fill in all required fields and select at least one subject.",
+      "authenticationError": "Authentication error. Please login again.",
+      "parentDeleted": "Parent deleted successfully!",
+      "parentUpdated": "Parent updated successfully!",
+      "parentCreated": "Parent created successfully!",
+      "failedToCreateParent": "Failed to create parent. Please try again.",
+      "failedToUpdateParent": "Failed to update parent. Please try again.",
+      "failedToDeleteParent": "Failed to delete parent. Please try again."
+    },
+    "buttons": {
+      "ok": "OK",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirm": "Confirm"
+    },
+    "deleteConfirmation": {
+      "title": "Delete",
+      "cannotBeUndone": "This action cannot be undone",
+      "willPermanentlyDelete": "This will permanently delete:",
+      "typeToConfirm": "Type",
+      "toConfirm": "to confirm:",
+      "typeHere": "Type",
+      "here": "here",
+      "mustMatchExactly": "Must match exactly:",
+      "confirmationMatches": "Confirmation text matches",
+      "deleting": "Deleting...",
+      "safetyNotice": "Safety Notice:",
+      "safetyMessage": "This deletion is permanent and cannot be undone. Make sure you have backups if needed.",
+      "student": {
+        "title": "Delete student",
+        "item1": "Student account and login credentials",
+        "item2": "All conversation history and progress",
+        "item3": "Enrollment in classes",
+        "item4": "Parent-student relationships"
+      },
+      "teacher": {
+        "title": "Delete teacher",
+        "item1": "Teacher account and login credentials",
+        "item2": "Class assignments and relationships",
+        "item3": "Teaching history and reports"
+      },
+      "parent": {
+        "title": "Delete parent",
+        "item1": "Parent account and login credentials",
+        "item2": "Links to all children",
+        "item3": "Access to student reports"
+      },
+      "class": {
+        "title": "Delete class",
+        "item1": "Class and all its settings",
+        "item2": "Student enrollments (students will be unassigned)",
+        "item3": "Teacher assignments",
+        "item4": "Class performance data"
+      }
+    }
+  },
+  "studentRegistration": {
+    "title": "Create Your Account",
+    "subtitle": "Register as a student to start learning",
+    "backToLogin": "← Back to Login",
+    "form": {
+      "title": "Student Registration",
+      "description": "Fill in your information to create your account",
+      "fullName": "Full Name *",
+      "fullNamePlaceholder": "Enter your full name",
+      "age": "Age *",
+      "agePlaceholder": "Enter your age (8-28)",
+      "school": "School *",
+      "schoolPlaceholder": "Type to search for your school",
+      "schoolLoading": "Loading schools...",
+      "schoolNotFound": "No schools found matching",
+      "grade": "Grade *",
+      "gradePlaceholder": "Select your grade",
+      "createAccount": "Create Account",
+      "creatingAccount": "Creating Account...",
+      "alreadyHaveAccount": "Already have an account?",
+      "loginHere": "Login Here"
+    },
+    "errors": {
+      "enterName": "Please enter your name",
+      "enterValidAge": "Please enter a valid age (8-28)",
+      "selectSchool": "Please select a school",
+      "selectGrade": "Please select your grade",
+      "registrationFailed": "Registration failed. Please try again.",
+      "networkError": "Network error. Please check your connection and try again."
+    },
+    "credentials": {
+      "title": "🎓 Account Created Successfully!",
+      "name": "Name:",
+      "school": "School:",
+      "username": "Username:",
+      "password": "Password:",
+      "warning": "⚠️ Please save these credentials. You will need them to login.",
+      "copyCredentials": "📋 Copy Credentials",
+      "loginNow": "Login Now",
+      "close": "Close",
+      "copied": "Credentials copied to clipboard!",
+      "copyText": "Student Login Credentials:\n\nName: {name}\nSchool: {school}\nUsername: {username}\nPassword: {password}\n\nPlease save these credentials. You will need them to login."
+    },
+    "grades": {
+      "premier": "Premier Année",
+      "deuxieme": "Deuxième Année",
+      "troisieme": "Troisième Année",
+      "quatrieme": "Quatrième Année",
+      "bac": "Baccalauréat (BAC)"
+    }
+  }
+}

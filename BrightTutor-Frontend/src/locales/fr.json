@@ -1,0 +1,1104 @@
+{
+  "schoolDashboard": {
+    "title": "Tableau de Bord Administrateur de l'École",
+    "welcome": "Bon retour!",
+    "schoolAdmin": "Administrateur de l'École",
+    "refresh": "Actualiser",
+    "logout": "Déconnexion",
+    "welcomeBanner": {
+      "title": "Bienvenue sur Tutori!",
+      "description": "Votre école a été approuvée et votre plateforme de tutorat IA est prête. Commencez par ajouter des enseignants et des étudiants pour commencer le parcours d'apprentissage!"
+    },
+    "stats": {
+      "students": "Étudiants",
+      "teachers": "Enseignants",
+      "classes": "Classes",
+      "parents": "Parents",
+      "totalCapacity": "Capacité Totale: Illimitée",
+      "active": "Actif",
+      "registered": "Inscrit"
+    },
+    "management": {
+      "title": "Gestion de l'École",
+      "description": "Gérez tous les aspects de la plateforme Tutori de votre école",
+      "cards": {
+        "studentManagement": {
+          "title": "Gestion des Étudiants",
+          "description": "Gérer l'inscription et les informations des étudiants"
+        },
+        "teacherManagement": {
+          "title": "Gestion des Enseignants",
+          "description": "Gérer le personnel enseignant et les affectations"
+        },
+        "parentManagement": {
+          "title": "Gestion des Parents",
+          "description": "Gérer les comptes parents et les connexions enfants"
+        },
+        "subjectManagement": {
+          "title": "Gestion des Matières",
+          "description": "Gérer les cours et le matériel d'apprentissage"
+        },
+        "classroomManagement": {
+          "title": "Gestion des Salles de Classe",
+          "description": "Créer et gérer les salles de classe de l'école"
+        }
+      }
+    },
+    "quickActions": {
+      "title": "Actions Rapides",
+      "description": "Tâches communes pour commencer",
+      "buttons": {
+        "addStudent": "Ajouter un Étudiant",
+        "addTeacher": "Ajouter un Enseignant",
+        "addParent": "Ajouter un Parent",
+        "addSubject": "Ajouter une Matière"
+      }
+    }
+  },
+  "studentManagement": {
+    "title": "Gestion des Étudiants",
+    "subtitle": "Gérez les étudiants de votre école",
+    "backToDashboard": "Retour au Tableau de Bord",
+    "exportData": "Exporter les Données",
+    "addStudent": "Ajouter un Étudiant",
+    "stats": {
+      "totalStudents": "Total des Étudiants",
+      "totalCapacity": "Capacité Totale: Illimitée",
+      "gradeLevels": "Niveaux de Classe",
+      "registeredParents": "Parents Inscrits"
+    },
+    "forms": {
+      "addNewStudent": "Ajouter un Nouvel Étudiant",
+      "addNewStudentDesc": "Ajouter un nouvel étudiant à votre école",
+      "editStudent": "Modifier l'Étudiant",
+      "editStudentDesc": "Mettre à jour les informations de l'étudiant et les détails du parent",
+      "firstName": "Prénom",
+      "lastName": "Nom de Famille",
+      "classroom": "Salle de Classe",
+      "selectClassroom": "Sélectionner la Salle de Classe",
+      "noClassroomsAvailable": "Aucune salle de classe disponible - Créez d'abord les salles de classe",
+      "noClassroomsWarning": "Aucune salle de classe trouvée. Veuillez d'abord créer des salles de classe dans la section Salles de Classe.",
+      "studentEmail": "Email de l'Étudiant (Optionnel)",
+      "dateOfBirth": "Date de Naissance",
+      "notes": "Notes (Optionnel)",
+      "parentInformation": "Informations du Parent",
+      "createNewParent": "Créer un Nouveau Parent",
+      "selectExistingParent": "Sélectionner un Parent Existant",
+      "noParent": "Aucun Parent (Étudiant Seul)",
+      "parentName": "Nom du Parent",
+      "parentEmail": "Email du Parent",
+      "parentPhone": "Téléphone du Parent",
+      "selectParent": "Sélectionner le Parent",
+      "searchParents": "Rechercher des parents par nom, email ou nom d'utilisateur...",
+      "parentsFound": "parents trouvés",
+      "noParentsAvailable": "Aucun parent disponible. Créez d'abord des parents.",
+      "children": "enfants",
+      "updateParentInfo": "Mettre à jour les Informations du Parent",
+      "selectDifferentParent": "Sélectionner un Parent Différent",
+      "selectParentLabel": "Sélectionner le Parent",
+      "credentialsNote": "Note: Les identifiants de connexion de l'étudiant resteront inchangés. Seules les informations du profil seront mises à jour.",
+      "addStudentButton": "Ajouter l'Étudiant",
+      "creatingStudent": "Création de l'Étudiant...",
+      "updateStudentButton": "Mettre à jour l'Étudiant",
+      "cancel": "Annuler",
+      "optional": "(Optionnel)",
+      "emailWillBe": "L'email sera :",
+      "enterUsernameOnly": "Entrez uniquement le nom d'utilisateur - @tutori.io sera ajouté automatiquement",
+      "placeholders": {
+        "firstName": "Mohamed",
+        "lastName": "Ould Ahmed",
+        "studentEmail": "mohamed@example.com",
+        "parentName": "Ahmed Ould Mohamed",
+        "parentEmail": "ahmed.parent@example.com",
+        "parentPhone": "+222 XX XX XX XX",
+        "notes": "Toute note ou information spéciale",
+        "searchParents": "Rechercher des parents par nom, email ou nom d'utilisateur...",
+        "selectClassroom": "Sélectionner la Salle de Classe"
+      }
+    },
+    "studentsList": {
+      "title": "Vos Étudiants",
+      "description": "Gérez l'inscription et les informations de vos étudiants",
+      "searchPlaceholder": "Rechercher des étudiants... (nom, nom d'utilisateur, âge)",
+      "found": "trouvés",
+      "noStudentsYet": "Aucun Étudiant Inscrit Encore",
+      "noStudentsDesc": "Ajoutez votre premier étudiant pour commencer à construire votre communauté scolaire.",
+      "addFirstStudent": "Ajouter Votre Premier Étudiant",
+      "username": "Nom d'utilisateur:",
+      "email": "Email:",
+      "parent": "Parent:",
+      "edit": "Modifier",
+      "credentials": "Identifiants",
+      "getAIReport": "Obtenir le Rapport IA",
+      "generating": "Génération...",
+      "parentLogin": "Connexion Parent",
+      "remove": "Supprimer"
+    },
+    "credentials": {
+      "studentAccountCreated": "Compte Étudiant Créé!",
+      "parentAccountCreated": "Compte Parent Créé!",
+      "loginCredentials": "Identifiants de Connexion:",
+      "username": "Nom d'utilisateur:",
+      "email": "Email:",
+      "password": "Mot de passe:",
+      "copyStudentInfo": "Copier les Infos Étudiant",
+      "copyParentInfo": "Copier les Infos Parent",
+      "close": "Fermer",
+      "shareCredentials": "Veuillez partager ces identifiants avec l'étudiant/le parent.",
+      "studentLoginCredentials": "Identifiants de Connexion Étudiant",
+      "parentLoginCredentials": "Identifiants de Connexion Parent",
+      "name": "Nom:",
+      "copyToClipboard": "Copier dans le Presse-papiers",
+      "childInfo": "Enfant:",
+      "loginWithEmailPassword": "Connexion avec EMAIL et MOT DE PASSE"
+    },
+    "aiReport": {
+      "title": "Rapport de Progrès IA",
+      "recentProgress": "Progrès Récent",
+      "strengths": "Points Forts",
+      "areasForImprovement": "Domaines à Améliorer",
+      "adviceForParents": "Conseils aux Parents",
+      "reportBasedOn": "Rapport basé sur:",
+      "chatMessages": "messages de chat",
+      "daysWithActivity": "jours avec activité",
+      "generated": "Généré:",
+      "print": "Imprimer",
+      "close": "Fermer"
+    },
+    "alerts": {
+      "fillRequiredFields": "Veuillez remplir tous les champs requis: Prénom, Nom de famille, Date de naissance et Classe.",
+      "fillParentInfo": "Veuillez remplir le nom, l'email et le téléphone du parent pour l'inscription d'un nouveau parent.",
+      "selectExistingParent": "Veuillez sélectionner un parent existant.",
+      "studentCreated": "Étudiant créé avec succès!",
+      "studentUpdated": "Étudiant mis à jour avec succès!",
+      "studentDeleted": "Étudiant supprimé avec succès!",
+      "errorCreating": "Échec de la création de l'étudiant. Veuillez réessayer.",
+      "errorUpdating": "Échec de la mise à jour de l'étudiant. Veuillez réessayer.",
+      "errorDeleting": "Échec de la suppression de l'étudiant. Veuillez réessayer.",
+      "credentialsCopied": "Identifiants copiés dans le presse-papiers!",
+      "parentCredentialsNotAvailable": "Identifiants du parent non disponibles pour cet étudiant.",
+      "sessionExpired": "Votre session a expiré. Souhaitez-vous vous reconnecter?",
+      "failedToCreate": "Échec de la création de l'étudiant:",
+      "failedToUpdate": "Erreur:",
+      "failedToDelete": "Erreur:",
+      "failedToGenerateReport": "Échec de la génération du rapport:",
+      "failedToGenerateReportTryAgain": "Échec de la génération du rapport. Veuillez réessayer."
+    }
+  },
+  "common": {
+    "language": "Langue",
+    "selectLanguage": "Sélectionner la Langue"
+  },
+  "teacherManagement": {
+    "title": "Gestion des Enseignants",
+    "subtitle": "Gérez le personnel enseignant de votre école",
+    "backToDashboard": "Retour au Tableau de Bord",
+    "addTeacher": "Ajouter un Enseignant",
+    "stats": {
+      "activeTeachers": "Enseignants Actifs",
+      "totalCapacity": "Capacité Totale: Illimitée",
+      "schoolSubjects": "Matières de l'École",
+      "schoolClassrooms": "Salles de Classe de l'École"
+    },
+    "forms": {
+      "addNewTeacher": "Ajouter un Nouvel Enseignant",
+      "addNewTeacherDesc": "Ajouter un nouvel enseignant à votre école",
+      "editTeacher": "Modifier l'Enseignant",
+      "editTeacherDesc": "Mettre à jour les informations de l'enseignant (les identifiants resteront inchangés)",
+      "fullName": "Nom Complet",
+      "emailAddress": "Adresse Email",
+      "subjects": "Matières",
+      "subjectsDesc": "Sélectionnez toutes celles qui s'appliquent",
+      "assignedClassrooms": "Salles de Classe Assignées",
+      "assignedClassroomsDesc": "Sélectionnez toutes celles qui s'appliquent",
+      "selected": "sélectionné",
+      "noSubjectsAvailable": "Aucune matière disponible. Veuillez d'abord créer des matières.",
+      "noClassroomsAvailable": "Aucune salle de classe disponible. Veuillez d'abord créer des salles de classe.",
+      "createSubjects": "Créer des Matières",
+      "createClassrooms": "Créer des Salles de Classe",
+      "selectClassroomsDesc": "Sélectionnez les salles de classe dont cet enseignant sera responsable",
+      "automaticCredentials": "Identifiants Automatiques:",
+      "automaticCredentialsDesc": "Le nom d'utilisateur et le mot de passe seront générés automatiquement et affichés après création.",
+      "credentialsNote": "Note:",
+      "credentialsNoteDesc": "Les identifiants de connexion (email/mot de passe) resteront inchangés. Seules les informations du profil seront mises à jour.",
+      "addTeacherButton": "Ajouter l'Enseignant",
+      "creating": "Création...",
+      "updateTeacherButton": "Mettre à jour l'Enseignant",
+      "updating": "Mise à jour...",
+      "cancel": "Annuler",
+      "placeholders": {
+        "fullName": "Ahmed Ould Mohamed",
+        "emailAddress": "ahmed.teacher@school.edu"
+      }
+    },
+    "teachersList": {
+      "title": "Vos Enseignants",
+      "description": "Gérez votre personnel enseignant et leurs affectations",
+      "searchPlaceholder": "Rechercher des enseignants... (nom, email, matière)",
+      "found": "trouvés",
+      "noTeachersYet": "Aucun Enseignant Ajouté Encore",
+      "noTeachersDesc": "Ajoutez votre premier enseignant pour commencer à construire l'équipe enseignante de votre école.",
+      "addFirstTeacher": "Ajouter Votre Premier Enseignant",
+      "loginEmail": "Email de Connexion",
+      "subjects": "Matières:",
+      "classes": "Classes:",
+      "noClassesAssigned": "Aucune classe assignée",
+      "edit": "Modifier",
+      "credentials": "Identifiants",
+      "remove": "Supprimer"
+    },
+    "credentials": {
+      "teacherLoginCredentials": "Identifiants de Connexion Enseignant",
+      "loginCredentials": "Identifiants de Connexion:",
+      "email": "Email:",
+      "password": "Mot de passe:",
+      "copyTeacherInfo": "Copier les Infos Enseignant",
+      "close": "Fermer",
+      "shareCredentials": "Veuillez partager ces identifiants avec l'enseignant.",
+      "subjects": "Matières:",
+      "classes": "Classes:",
+      "none": "Aucune"
+    },
+    "setup": {
+      "setupRequired": "Configuration Requise:",
+      "createSubjectsAndClassrooms": "Vous devez créer des matières et des salles de classe avant d'ajouter des enseignants.",
+      "createSubjectsOnly": "Vous devez créer des matières avant d'ajouter des enseignants.",
+      "createClassroomsOnly": "Vous devez créer des salles de classe avant d'ajouter des enseignants."
+    },
+    "loading": "Chargement de la gestion des enseignants..."
+  },
+  "parentManagement": {
+    "title": "Gestion des Parents",
+    "subtitle": "Gérez les comptes parents et les connexions enfants",
+    "backToDashboard": "Retour au Tableau de Bord",
+    "addParent": "Ajouter un Parent",
+    "stats": {
+      "registeredParents": "Parents Inscrits",
+      "connectedStudents": "Étudiants Connectés",
+      "unlinkedStudents": "Étudiants Non Liés"
+    },
+    "forms": {
+      "addNewParent": "Ajouter un Nouveau Parent",
+      "addNewParentDesc": "Créer un compte parent et le lier aux enfants",
+      "editParent": "Modifier le Parent",
+      "editParentDesc": "Mettre à jour les informations du parent (les identifiants resteront inchangés)",
+      "fullName": "Nom Complet",
+      "emailAddress": "Adresse Email",
+      "phoneNumber": "Numéro de Téléphone",
+      "selectChildren": "Sélectionner les Enfants",
+      "selectChildrenDesc": "Optionnel",
+      "selected": "sélectionné",
+      "noStudentsAvailable": "Aucun étudiant disponible. Ajoutez d'abord des étudiants.",
+      "searchStudents": "Rechercher des étudiants par nom, email ou nom d'utilisateur...",
+      "searchStudentsEdit": "Rechercher des étudiants par nom ou classe...",
+      "studentsFound": "étudiants trouvés",
+      "noStudentsFound": "Aucun étudiant trouvé correspondant à",
+      "alreadyHasParent": "A déjà un parent",
+      "hasOtherParent": "A un autre parent",
+      "automaticCredentials": "Identifiants Automatiques:",
+      "automaticCredentialsDesc": "L'email et le mot de passe seront générés automatiquement et affichés après création.",
+      "credentialsNote": "Note:",
+      "credentialsNoteDesc": "Les identifiants de connexion (email/mot de passe) resteront inchangés. Seules les informations du profil seront mises à jour.",
+      "createParentButton": "Créer un Compte Parent",
+      "creating": "Création du Parent...",
+      "updateParentButton": "Mettre à jour le Parent",
+      "updating": "Mise à jour...",
+      "cancel": "Annuler",
+      "placeholders": {
+        "fullName": "Fatima Mint Ahmed",
+        "emailAddress": "fatima.parent@example.com",
+        "phoneNumber": "+222 XX XX XX XX"
+      }
+    },
+    "parentsList": {
+      "title": "Comptes Parents",
+      "description": "Gérez les comptes parents et leurs connexions enfants",
+      "searchPlaceholder": "Rechercher des parents... (nom, email, téléphone, enfant)",
+      "found": "trouvés",
+      "noParentsYet": "Aucun Compte Parent Encore",
+      "noParentsDesc": "Créez des comptes parents pour permettre l'engagement familial et le suivi des progrès.",
+      "createFirstParent": "Créer le Premier Compte Parent",
+      "phone": "Téléphone:",
+      "children": "Enfants:",
+      "noChildrenLinked": "Aucun enfant lié",
+      "edit": "Modifier",
+      "credentials": "Identifiants",
+      "remove": "Supprimer"
+    },
+    "credentials": {
+      "parentLoginCredentials": "Identifiants de Connexion Parent",
+      "loginCredentials": "Identifiants de Connexion:",
+      "email": "Email:",
+      "password": "Mot de passe:",
+      "copyParentInfo": "Copier les Infos Parent",
+      "close": "Fermer",
+      "shareCredentials": "Veuillez partager ces identifiants avec le parent.",
+      "children": "Enfants:",
+      "emailLabel": "Email:",
+      "childrenLabel": "Enfants:",
+      "copiedToClipboard": "Identifiants parent copiés dans le presse-papiers!"
+    },
+    "loading": "Chargement de la gestion des parents..."
+  },
+  "subjectManagement": {
+    "title": "Gestion des Matières",
+    "subtitle": "Créer et gérer les matières scolaires",
+    "backToDashboard": "Retour au Tableau de Bord",
+    "createSubject": "Créer une Matière",
+    "subjectInformation": {
+      "title": "Informations sur la Matière",
+      "description": "Les matières forment le cœur de la base de connaissances de l'IA pour le tutorat.",
+      "newSubjectName": "Nom de la Nouvelle Matière",
+      "editSubjectName": "Modifier le Nom de la Matière",
+      "subjectTaughtIn": "Matière Enseignée En",
+      "subjectType": "Type de Matière",
+      "languageDescription": "Cela indique à l'IA quelle langue utiliser pour aider les étudiants avec cette matière",
+      "typeDescription": "Cela aide l'IA à comprendre la catégorie de matière pour la cartographie du curriculum.",
+      "placeholders": {
+        "subjectName": "ex: Mathématiques, Études Islamiques",
+        "selectSubjectType": "Sélectionner un type de matière"
+      },
+      "subjectTypes": {
+        "MATH": "Mathématiques (Mathématiques)",
+        "SCIENCE": "Sciences (Sciences)",
+        "PHYSICS": "Physique (Physique)"
+      },
+      "languageOptions": {
+        "Arabic": "Arabe (العربية)",
+        "French": "Français (Français)",
+        "English": "Anglais"
+      },
+      "buttons": {
+        "cancelEdit": "Annuler la Modification",
+        "createSubject": "Créer la Matière",
+        "updateSubject": "Mettre à jour la Matière",
+        "creating": "Création...",
+        "updating": "Mise à jour..."
+      }
+    },
+    "subjectsList": {
+      "title": "Vos Matières",
+      "subjectsListed": "matières listées",
+      "subjectListed": "matière listée",
+      "noSubjectsFound": "Aucune matière trouvée pour",
+      "searchPlaceholder": "Rechercher des matières...",
+      "noSubjectsYet": "Aucune matière créée encore",
+      "noSubjectsDesc": "Créez votre première matière pour commencer.",
+      "createFirstSubject": "Créer la Première Matière",
+      "language": "Langue:",
+      "id": "ID:",
+      "created": "Créé:",
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "alerts": {
+      "subjectNameRequired": "Le nom de la matière est requis!",
+      "duplicateName": "Une matière avec ce nom existe déjà!",
+      "authRequired": "Authentification requise. Veuillez vous reconnecter.",
+      "subjectCreated": "Matière créée avec succès!",
+      "subjectUpdated": "Matière mise à jour avec succès!",
+      "subjectDeleted": "La matière a été définitivement supprimée.",
+      "deleteConfirmation": "Êtes-vous absolument sûr de vouloir supprimer définitivement",
+      "deleteConfirmationEnd": "? Cette action ne peut pas être annulée.",
+      "typeSubjectName": "Pour confirmer la suppression, veuillez taper le nom de la matière exactement:",
+      "nameNotMatch": "Le nom de la matière ne correspond pas. Suppression annulée pour sécurité.",
+      "networkError": "Erreur réseau. Veuillez réessayer.",
+      "dangerWarning": "DANGER: Ceci supprimera définitivement la matière."
+    },
+    "loading": "Chargement de la gestion des matières..."
+  },
+  "loginPage": {
+    "backToHome": "Retour à l'accueil",
+    "welcomeBack": "Bon retour!",
+    "signInToTutori": "Se connecter à Tutori",
+    "signIn": "Se connecter",
+    "chooseAccountType": "Choisissez votre type de compte et connectez-vous",
+    "userTypes": {
+      "student": "Étudiant",
+      "parent": "Parent", 
+      "teacher": "Enseignant",
+      "admin": "Administrateur d'école"
+    },
+    "inputLabels": {
+      "studentUsername": "Nom d'utilisateur étudiant",
+      "parentUsername": "Nom d'utilisateur parent",
+      "emailAddress": "Adresse e-mail",
+      "adminEmail": "E-mail administrateur",
+      "password": "Mot de passe"
+    },
+    "placeholders": {
+      "studentUsername": "votre.nom_utilisateur",
+      "parentUsername": "parent.nom_utilisateur",
+      "teacherEmail": "enseignant@ecole.edu.mr",
+      "adminEmail": "admin@ecole.edu.mr",
+      "password": "Entrez votre mot de passe"
+    },
+    "buttonTexts": {
+      "startLearning": "🎮 Commencer à apprendre",
+      "viewChildProgress": "📊 Voir les progrès de l'enfant",
+      "openDashboard": "📚 Ouvrir le tableau de bord",
+      "adminDashboard": "🔑 Tableau de bord administrateur",
+      "signingIn": "🔄 Connexion en cours...",
+      "applyForSchoolAccount": "📝 Demander un compte scolaire"
+    },
+    "messages": {
+      "noAccountYet": "Vous n'avez pas encore de compte?",
+      "needHelp": "Besoin d'aide? Contactez le support:",
+      "contactEmail": "📧 contact@learn-to-win.com",
+      "contactPhone": "📞 +222 43 22 77 48",
+      "invalidUserType": "Type d'utilisateur sélectionné invalide",
+      "loginFailed": "Échec de la connexion. Veuillez vérifier vos identifiants.",
+      "networkError": "Erreur réseau. Veuillez réessayer."
+    }
+  },
+  "teacherDashboard": {
+    "title": "Tableau de Bord Enseignant",
+    "welcomeBack": "Bon retour!",
+    "logout": "Déconnexion",
+    "welcomeBanner": {
+      "title": "Bienvenue dans votre Tableau de Bord d'Enseignement!",
+      "subtitle": "Gérez vos classes, étudiants et matériel pédagogique en un seul endroit."
+    },
+    "stats": {
+      "subjects": "Matières",
+      "classes": "Classes", 
+      "school": "École",
+      "yourInstitution": "Votre Institution"
+    },
+    "lessonPlans": {
+      "title": "Plans de Cours Récents",
+      "subtitle": "Vos derniers matériaux pédagogiques et devoirs",
+      "createNew": "Créer Nouveau",
+      "due": "Échéance:",
+      "classes": "classes",
+      "class": "classe",
+      "edit": "Modifier",
+      "viewAll": "Voir tout",
+      "lessonPlans": "plans de cours",
+      "noPlans": "Aucun plan de cours pour le moment",
+      "noPlansSubtitle": "Créez votre premier plan de cours pour commencer à enseigner",
+      "createFirst": "Créer Votre Premier Plan de Cours"
+    },
+    "teachingTools": {
+      "title": "Outils Pédagogiques",
+      "subtitle": "Accédez à vos ressources pédagogiques et gérez vos classes",
+      "myStudents": "Mes Étudiants",
+      "myStudentsDesc": "Voir et gérer vos étudiants",
+      "lessonPlans": "Plans de Cours",
+      "lessonPlansDesc": "Créer et gérer les plans de cours de classe"
+    },
+    "loading": "Chargement du tableau de bord enseignant..."
+  },
+  "teacherStudents": {
+    "title": "Mes Étudiants",
+    "subtitle": "Gérer les étudiants dans vos classes assignées",
+    "backToDashboard": "← Retour au Tableau de Bord",
+    "myClassrooms": {
+      "title": "Mes Classes",
+      "subtitle": "Sélectionnez une classe pour voir les étudiants",
+      "students": "étudiants"
+    },
+    "addStudent": {
+      "title": "Ajouter un Nouvel Étudiant",
+      "subtitle": "Ajouter un étudiant à une de vos classes assignées",
+      "firstName": "Prénom",
+      "lastName": "Nom de Famille",
+      "myClassroom": "Ma Classe",
+      "studentEmail": "E-mail Étudiant (Optionnel)",
+      "dateOfBirth": "Date de Naissance (Optionnel)",
+      "notes": "Notes (Optionnel)",
+      "parentInformation": "Informations Parentales",
+      "createNewParent": "Créer un Nouveau Parent",
+      "selectExistingParent": "Sélectionner un Parent Existant",
+      "parentName": "Nom du Parent",
+      "parentEmail": "E-mail du Parent",
+      "parentPhone": "Téléphone du Parent",
+      "selectParent": "Sélectionner Parent",
+      "chooseExistingParent": "Choisir un parent existant...",
+      "children": "enfants",
+      "addStudent": "Ajouter Étudiant",
+      "creatingStudent": "Création de l'Étudiant...",
+      "cancel": "Annuler",
+      "selectYourClassroom": "Sélectionnez Votre Classe"
+    },
+    "studentsList": {
+      "title": "Étudiants dans",
+      "subtitle": "Visualisation des étudiants dans",
+      "selectClassroom": "Sélectionnez un onglet de classe pour voir les étudiants",
+      "searchPlaceholder": "Rechercher étudiants... (nom, nom d'utilisateur, âge)",
+      "found": "trouvé",
+      "noStudentsAdded": "Aucun Étudiant Ajouté Encore",
+      "noStudentsAddedSubtitle": "Ajoutez votre premier étudiant pour commencer à construire votre communauté de classe.",
+      "addFirstStudent": "Ajouter Votre Premier Étudiant",
+      "noStudentsFound": "Aucun Étudiant Trouvé",
+      "noStudentsFoundSubtitle": "Aucun étudiant ne correspond à vos critères de recherche.",
+      "noStudentsInClassroom": "Aucun étudiant dans",
+      "matchYourSearch": "ne correspond à votre recherche.",
+      "clearSearch": "Effacer Recherche",
+      "username": "Nom d'utilisateur:",
+      "email": "E-mail:",
+      "parent": "Parent:",
+      "age": "Âge",
+      "getAIReport": "Obtenir Rapport IA",
+      "generating": "Génération..."
+    },
+    "credentials": {
+      "title": "Étudiant Créé avec Succès!",
+      "subtitle": "Voici les identifiants de connexion:",
+      "student": "Étudiant:",
+      "parent": "Parent:",
+      "username": "Nom d'utilisateur:",
+      "password": "Mot de passe:",
+      "copyCredentials": "Copier Identifiants",
+      "close": "Fermer",
+      "shareCredentials": "Veuillez partager ces identifiants avec l'étudiant et le parent en toute sécurité.",
+      "copiedToClipboard": "Identifiants copiés dans le presse-papiers!"
+    },
+    "alerts": {
+      "fillRequiredFields": "Veuillez remplir tous les champs obligatoires.",
+      "onlyAssignedClassrooms": "Vous ne pouvez ajouter des étudiants qu'à vos classes assignées.",
+      "unableToFindClassId": "Impossible de trouver l'ID de classe. Veuillez réessayer.",
+      "errorCreatingStudent": "Erreur:",
+      "failedToAddStudent": "Échec de l'ajout de l'étudiant. Veuillez réessayer.",
+      "failedToGenerateReport": "Échec de génération du rapport:",
+      "failedToGenerateReportGeneric": "Échec de génération du rapport. Veuillez réessayer."
+    },
+    "loading": "Chargement de vos étudiants..."
+  },
+  "parentDashboard": {
+    "title": "Tableau de Bord Parent",
+    "welcomeBack": "Bon retour!",
+    "logout": "Déconnexion",
+    "welcomeBanner": {
+      "title": "Bienvenue sur votre Tableau de Bord Parent!",
+      "subtitle": "Suivez les progrès de vos enfants et restez connecté à leur éducation."
+    },
+    "stats": {
+      "children": "Enfants",
+      "underYourCare": "Sous votre garde",
+      "school": "École",
+      "status": "Statut",
+      "activeParent": "Parent Actif"
+    },
+    "childrenCards": {
+      "class": "Classe:",
+      "getAIReport": "Obtenir Rapport IA",
+      "generating": "Génération...",
+      "studentDetails": "Détails de l'Étudiant",
+      "noChildrenFound": "Aucun Enfant Trouvé",
+      "noChildrenSubtitle": "Aucun enfant n'est actuellement assigné à votre compte. Veuillez contacter l'administrateur de l'école si cela semble incorrect."
+    },
+    "alerts": {
+      "failedToGenerateReport": "Échec de génération du rapport:",
+      "failedToGenerateReportGeneric": "Échec de génération du rapport. Veuillez réessayer."
+    },
+    "loading": "Chargement du tableau de bord parent...",
+    "studentDetailsModal": {
+      "title": "Détails de l'Étudiant",
+      "subtitle": "Informations complètes",
+      "basicInformation": "Informations de Base",
+      "fullName": "Nom Complet",
+      "studentEmail": "E-mail Étudiant",
+      "dateOfBirth": "Date de Naissance",
+      "age": "Âge",
+      "yearsOld": "ans",
+      "notProvided": "Non fourni",
+      "notSpecified": "Non spécifié",
+      "academicInformation": "Informations Académiques",
+      "class": "Classe",
+      "school": "École",
+      "close": "Fermer"
+    }
+  },
+  "landingPage": {
+    "navigation": {
+      "about": "À propos",
+      "contact": "Contact",
+      "getStarted": "Inscrivez votre école"
+    },
+    "hero": {
+      "tagline": "Éducation Révolutionnaire Alimentée par l'IA",
+      "title": "Chaque Étudiant Mérite",
+      "titleHighlight": "Une Attention Personnelle",
+      "description": "La plupart des étudiants reçoivent",
+      "timeHighlight": "seulement quelques secondes d'aide personnalisée réelle en classe.",
+      "descriptionEnd": "Tutori donne à chaque étudiant un compagnon d'apprentissage alimenté par l'IA qui comprend comment ils apprennent.",
+      "transformButton": "S'inscrire en tant qu'étudiant",
+      "watchDemoButton": "Voir la Démo",
+      "roleButtonStudents": "Étudiants",
+      "roleButtonParent": "Parent",
+      "roleButtonSchool": "École",
+      "roleButtonAriaStudents": "S'inscrire en tant qu'étudiant",
+      "roleButtonAriaParent": "S'inscrire en tant que parent",
+      "roleButtonAriaSchool": "Inscrivez votre école",
+      "registerAsStudent": "🎓 S'inscrire en tant qu'étudiant"
+    },
+    "problem": {
+      "title": "Le Défi que Chaque",
+      "titleHighlight": "Étudiant",
+      "titleEnd": "Affronte",
+      "timeDeficit": {
+        "title": "Pas Assez de Temps pour Chaque Étudiant",
+        "description": "Dans les classes surpeuplées, la plupart des étudiants reçoivent seulement",
+        "timeHighlight": "quelques secondes d'aide personnelle par jour",
+        "source": "(Semaine de l'Éducation 2024)"
+      },
+      "overwhelmed": {
+        "title": "Prendre du Retard en Silence",
+        "description": "",
+        "percentageHighlight": "Beaucoup d'étudiants",
+        "descriptionEnd": "luttent en silence—trop timides, trop confus, ou avançant à un rythme différent du reste de la classe."
+      },
+      "studentsFall": {
+        "title": "Les Esprits Brillants Passent Inaperçus",
+        "description": "Sans attention personnalisée, des milliers d'étudiants capables ne débloquent jamais leur véritable potentiel"
+      }
+    },
+    "solution": {
+      "title": "Comment Tutori",
+      "titleHighlight": "Autonomise les Étudiants",
+      "subtitle": "Vrais parcours d'apprentissage d'étudiants qui ont enfin reçu l'attention personnelle dont ils avaient besoin",
+      "ahmedBreakthrough": {
+        "title": "La Percée d'Ahmed",
+        "description": "A lutté avec les fractions. Tutori a utilisé des explications visuelles et son style d'apprentissage.",
+        "highlight": "Maintenant il enseigne aux autres."
+      },
+      "fatimaConfidence": {
+        "title": "La Confiance de Fatima",
+        "description": "Était trop timide pour poser des questions en classe. Tutori est devenu son partenaire d'étude IA.",
+        "highlight": "Maintenant elle participe quotidiennement avec confiance."
+      },
+      "teacherReality": {
+        "title": "Ce que les Étudiants Obtiennent avec Tutori",
+        "insights": "Soutien d'apprentissage personnalisé à tout moment",
+        "personalized": "Explique les sujets de la manière dont ils comprennent",
+        "tutor": "Commentaires instantanés et aide étape par étape",
+        "smarter": "Construit la confiance, pas seulement les notes"
+      }
+    },
+    "evidence": {
+      "title": "Soutenu par de Vraies",
+      "titleHighlight": "Recherches Éducatives",
+      "subtitle": "Notre approche est soutenue par des décennies de recherche éducative et de résultats de classe réels",
+      "mitStudy": "Étude MIT: L'apprentissage personnalisé augmente la rétention des étudiants de 42%",
+      "educationWeek": "Semaine de l'Éducation 2024: Les étudiants ont besoin de 3x plus de soutien personnel pour un apprentissage efficace",
+      "teacherEffectiveness": "Institut des Sciences de l'Apprentissage: Les commentaires immédiats accélèrent le progrès",
+      "bloomResearch": "Recherche de Bloom: L'apprentissage 1-à-1 augmente les résultats de 2 niveaux scolaires",
+      "learningScience": "Institut des Sciences de l'Apprentissage: Les commentaires immédiats accélèrent le progrès",
+      "stanfordResearch": "Recherche Stanford: L'apprentissage adaptatif double les taux de compréhension"
+    },
+    "empowerment": {
+      "quote": "Tutori ne remplace pas les enseignants—il autonomise les étudiants pour apprendre à leur propre rythme, avec un soutien personnel disponible 24/7.",
+      "highlight": "Tutori fait enfin que l'apprentissage se sente personnel."
+    },
+    "footer": {
+      "description": "Autonomiser les étudiants partout pour atteindre leur plein potentiel.",
+      "about": "À propos",
+      "contact": "Contact"
+    }
+  },
+  "aboutPage": {
+    "navigation": {
+      "backToHome": "Retour à l'accueil"
+    },
+    "hero": {
+      "tagline": "Notre Histoire",
+      "title": "Notre Histoire :",
+      "titleHighlight": "Autonomiser les Enseignants",
+      "description": "Née de la frustration des éducateurs qui savaient qu'ils pouvaient faire plus, Tutori a été créé pour donner aux enseignants le super-pouvoir qu'ils méritent."
+    },
+    "story": {
+      "title": "Pourquoi j'ai Créé Tutori",
+      "paragraph1": "J'enseigne l'anglais depuis six ans, et j'aime vraiment ce que je fais. J'aime mes étudiants, et j'essaie toujours de faire de mon mieux pour les aider.",
+      "paragraph2": "Mais quand j'enseignais en classe, il y avait toujours le même problème—certains étudiants étaient laissés pour compte. Pas parce qu'ils ne s'en souciaient pas ou n'étaient pas intelligents, mais parce qu'ils ne comprenaient pas la leçon tout de suite. Et je ne pouvais pas aider tout le monde comme je le voulais.",
+      "paragraph3": "Il n'y avait que six heures dans la journée, et trop d'étudiants qui avaient besoin de quelque chose de différent. Certains avaient besoin de plus de temps, d'autres avaient besoin que les choses soient expliquées d'une autre manière. Mais la classe devait avancer, même si tout le monde n'était pas prêt.",
+      "paragraph4": "Je suis devenu enseignant pour aider les étudiants à apprendre et grandir. Mais c'est si difficile quand on n'a pas le temps de donner à chaque étudiant ce dont il a vraiment besoin.",
+      "paragraph5": "C'est pourquoi j'ai créé Tutori.",
+      "paragraph6": "Quelques années plus tard, j'ai réalisé qu'on pouvait construire un outil où chaque étudiant a son propre tuteur IA personnel—un qui comprend le plan de cours de l'enseignant, apprend à connaître l'étudiant, et explique la leçon de la manière dont cet étudiant apprend le mieux.",
+      "paragraph7": "Maintenant aucun étudiant n'a à être laissé pour compte."
+    },
+    "quote": {
+      "text": "\"Je ne veux pas que l'IA enseigne à mes étudiants. Je veux que l'IA m'aide à mieux enseigner à mes étudiants.\"",
+      "author": "— Sarah Mitchell, Enseignante de 5ème année"
+    },
+    "mission": {
+      "title": "Notre Mission :",
+      "titleHighlight": "Super-pouvoirs des Enseignants",
+      "personalizedTeaching": {
+        "title": "Enseignement Personnalisé",
+        "description": "Chaque étudiant obtient exactement ce dont il a besoin, exactement quand il en a besoin."
+      },
+      "instantInsights": {
+        "title": "Insights Instantanés",
+        "description": "Sachez immédiatement quels étudiants ont besoin d'aide et comment exactement les aider."
+      },
+      "amplifiedImpact": {
+        "title": "Impact Amplifié",
+        "description": "Atteignez chaque étudiant dans votre classe avec la profondeur qu'il mérite."
+      }
+    },
+    "values": {
+      "title": "Ce en quoi Nous Croyons",
+      "teachersIrreplaceable": {
+        "title": "Les Enseignants sont Irremplaçables",
+        "description": "Aucune IA ne peut remplacer l'étincelle dans les yeux d'un enseignant quand un étudiant \"comprend\" enfin. Nous construisons une technologie qui fait que ces moments arrivent plus souvent."
+      },
+      "everyStudentMatters": {
+        "title": "Chaque Étudiant Compte",
+        "description": "L'enfant silencieux au fond de la classe mérite la même attention que l'étudiant vedette. La technologie devrait aider les enseignants à atteindre chaque apprenant."
+      },
+      "learningJoyful": {
+        "title": "L'Apprentissage Devrait être Joyeux",
+        "description": "Quand les étudiants sont engagés et que les enseignants se sentent autonomes, la magie opère. Nous concevons pour ces moments magiques."
+      },
+      "excellenceAccessible": {
+        "title": "L'Excellence est Accessible",
+        "description": "Chaque classe, peu importe les ressources, devrait avoir accès à une technologie éducative de classe mondiale qui fonctionne vraiment."
+      }
+    },
+    "cta": {
+      "title": "Prêt à Devenir un",
+      "titleHighlight": "Super Enseignant",
+      "titleEnd": " ?",
+      "description": "Rejoignez les éducateurs qui ont découvert ce que ça fait d'atteindre vraiment chaque étudiant dans leur classe.",
+      "button": "Commencez Aujourd'hui"
+    },
+    "footer": {
+      "description": "Autonomiser les enseignants, transformer l'éducation.",
+      "home": "Accueil",
+      "contact": "Contact"
+    }
+  },
+  "contactPage": {
+    "navigation": {
+      "backToHome": "Retour à l'accueil"
+    },
+    "hero": {
+      "tagline": "Connectons-nous",
+      "title": "Entrons en",
+      "titleHighlight": "Contact",
+      "description": "Prêt à transformer votre classe ? Nous sommes là pour vous aider à commencer et vous soutenir à chaque étape du chemin."
+    },
+    "contactInfo": {
+      "emailUs": {
+        "title": "Écrivez-nous",
+        "description": "Envoyez-nous un message à tout moment",
+        "email": "contact@learn-to-win.com"
+      },
+      "callUs": {
+        "title": "Appelez-nous",
+        "description": "Parlez directement avec notre équipe",
+        "phone": "+222 4322 7748"
+      },
+      "quickResponse": {
+        "title": "Réponse Rapide",
+        "description": "Nous répondons généralement dans les 24 heures"
+      }
+    },
+    "helpSection": {
+      "title": "Comment Pouvons-nous Aider ?",
+      "gettingStarted": {
+        "title": "Commencer",
+        "description": "Nouveau sur Tutori ? Nous vous aiderons à configurer votre classe et à faire apprendre vos premiers étudiants."
+      },
+      "technicalSupport": {
+        "title": "Support Technique",
+        "description": "Vous avez des problèmes avec la plateforme ? Notre équipe vous remettra en marche rapidement."
+      },
+      "partnershipOpportunities": {
+        "title": "Opportunités de Partenariat",
+        "description": "Intéressé à apporter Tutori à votre école ou district ? Discutons de comment nous pouvons aider."
+      },
+      "featureRequests": {
+        "title": "Demandes de Fonctionnalités",
+        "description": "Vous avez une idée pour rendre Tutori encore meilleur ? Nous aimons entendre notre communauté d'enseignants."
+      }
+    },
+    "officeHours": {
+      "title": "Quand Nous Sommes Disponibles",
+      "emailSupport": {
+        "title": "Support Email",
+        "hours": "24/7",
+        "description": "Toujours là quand vous avez besoin de nous"
+      },
+      "phoneSupport": {
+        "title": "Support Téléphonique",
+        "hours": "Lun-Ven, 8h - 18h"
+      },
+      "liveChat": {
+        "title": "Chat en Direct",
+        "hours": "Bientôt",
+        "description": "Assistance en temps réel"
+      }
+    },
+    "cta": {
+      "title": "Prêt à Commencer ?",
+      "description": "N'attendez pas—vos étudiants méritent le meilleur. Rejoignez les enseignants qui transforment déjà leurs classes avec Tutori.",
+      "button": "Commencez Votre Voyage"
+    },
+    "footer": {
+      "description": "Nous sommes là pour soutenir votre parcours d'enseignement.",
+      "home": "Accueil",
+      "about": "À propos"
+    }
+  },
+  "classroomManagement": {
+    "title": "Gestion des Classes",
+    "subtitle": "Créer et gérer les classes scolaires",
+    "backToDashboard": "Retour au Tableau de Bord",
+    "createClassroom": "Créer une Classe",
+    "stats": {
+      "totalClassrooms": "Total des Classes",
+      "totalStudents": "Total des Étudiants",
+      "totalTeachers": "Total des Enseignants",
+      "availableSubjects": "Matières Disponibles"
+    },
+    "warnings": {
+      "noSubjectsYet": "Aucune matière créée encore!",
+      "noSubjectsDesc": "Vous devez créer des matières avant de pouvoir créer des classes.",
+      "createSubjectsFirst": "Créer les Matières d'Abord"
+    },
+    "classroomsList": {
+      "title": "Vos Classes",
+      "noClassroomsFound": "Aucune classe trouvée correspondant à",
+      "noClassroomsYet": "Aucune classe créée encore. Commencez par créer votre première classe.",
+      "classroomsCreated": "classes créées",
+      "classroomCreated": "classe créée",
+      "found": "trouvées",
+      "searchPlaceholder": "Rechercher des classes... (nom, nombre, date, matières)",
+      "noClassroomsYetTitle": "Aucune classe encore",
+      "noClassroomsYetDesc": "Créez votre première classe pour commencer",
+      "createFirstClassroom": "Créer la Première Classe",
+      "students": "étudiants",
+      "teachers": "enseignants",
+      "created": "Créé",
+      "more": "plus",
+      "view": "Voir",
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "classroomDetails": {
+      "title": "Détails de la Classe",
+      "selectClassroom": "Sélectionnez une classe pour voir les détails",
+      "detailsFor": "Détails pour",
+      "overview": "Aperçu",
+      "classroomName": "Nom de la Classe:",
+      "students": "Étudiants:",
+      "teachers": "Enseignants:",
+      "subjects": "Matières:",
+      "created": "Créé:",
+      "subjectsList": "Matières",
+      "studentsList": "Étudiants",
+      "teachersList": "Enseignants",
+      "noStudentsOrTeachers": "Aucun étudiant ou enseignant assigné encore",
+      "selectClassroomToView": "Sélectionnez une classe pour voir ses détails"
+    },
+    "forms": {
+      "createNewClassroom": "Créer une Nouvelle Classe",
+      "createNewClassroomDesc": "Entrez les détails de la classe et sélectionnez les matières pour la personnalisation IA",
+      "editClassroom": "Modifier la Classe",
+      "editClassroomDesc": "Mettre à jour le nom de la classe et les matières",
+      "classroomName": "Nom de la Classe",
+      "classroomNamePlaceholder": "ex: Classe 1A, Salle de Mathématiques, Laboratoire de Sciences",
+      "classroomYear": "Choisir l'Année de Classe",
+      "chooseClassroomYear": "Choisir l'Année de Classe",
+      "selectClassroomYear": "Sélectionner une année de classe",
+      "classroomYears": {
+        "PREMIER_COLLEGE": "Premier Collège (Année 1)",
+        "DEUXIEME_COLLEGE": "Deuxième Collège (Année 2)",
+        "TROISIEME_COLLEGE": "Troisième Collège (Année 3)",
+        "QUATRIEME_COLLEGE": "Quatrième Collège (Année 4)"
+      },
+      "classroomYearDesc": "Cela aide l'IA à comprendre le niveau de curriculum de l'étudiant pour le tutorat personnalisé.",
+      "subjects": "Sélectionner les Matières",
+      "selected": "sélectionnées",
+      "subjectsDesc": "Choisissez les matières que les étudiants de cette classe étudieront. Cela aide l'IA à fournir un tutorat personnalisé.",
+      "noSubjectsAvailable": "Aucune matière disponible. Veuillez créer des matières d'abord.",
+      "createSubjects": "Créer des Matières",
+      "aiPersonalization": "Personnalisation IA:",
+      "aiPersonalizationDesc": "Les matières que vous sélectionnez aideront notre tuteur IA à fournir des expériences d'apprentissage personnalisées pour les étudiants de cette classe.",
+      "note": "Note:",
+      "noteDesc": "Changer les matières peut affecter la personnalisation IA pour les étudiants déjà dans cette classe.",
+      "cancel": "Annuler",
+      "createClassroom": "Créer la Classe",
+      "creating": "Création...",
+      "updateClassroom": "Mettre à jour la Classe",
+      "updating": "Mise à jour..."
+    },
+    "alerts": {
+      "enterClassroomName": "Veuillez entrer un nom de classe.",
+      "selectAtLeastOneSubject": "Veuillez sélectionner au moins une matière pour cette classe.",
+      "classroomNameExists": "Une classe avec ce nom existe déjà.",
+      "failedToCreate": "Échec de la création de la classe. Veuillez réessayer.",
+      "classroomUpdated": "Classe mise à jour avec succès!",
+      "failedToUpdate": "Échec de la mise à jour de la classe. Veuillez réessayer.",
+      "cannotDeleteWithStudents": "Impossible de supprimer",
+      "cannotDeleteWithTeachers": "car elle a",
+      "studentsAnd": "étudiants et",
+      "teachersAssigned": "enseignants assignés. Veuillez les réassigner d'abord.",
+      "dangerWarning": "DANGER: Ceci supprimera définitivement la classe.",
+      "typeClassroomName": "Pour confirmer la suppression, veuillez taper le nom de la classe exactement:",
+      "nameNotMatch": "Le nom de la classe ne correspond pas. Suppression annulée pour sécurité.",
+      "deleteConfirmation": "Êtes-vous absolument sûr de vouloir supprimer définitivement",
+      "deleteConfirmationEnd": "? Cette action ne peut pas être annulée.",
+      "classroomDeleted": "La classe a été définitivement supprimée."
+    },
+    "loading": "Chargement des classes..."
+  },
+  "modals": {
+    "titles": {
+      "success": "Succès",
+      "error": "Erreur",
+      "warning": "Avertissement",
+      "info": "Information",
+      "requiredFields": "Champs Requis",
+      "deletionFailed": "Échec de la Suppression",
+      "creationFailed": "Échec de la Création",
+      "updateFailed": "Échec de la Mise à Jour",
+      "networkError": "Erreur Réseau",
+      "nameMismatch": "Nom Non Correspondant",
+      "authenticationRequired": "Authentification Requise",
+      "noParent": "Pas de Parent",
+      "copied": "Copié",
+      "reportGenerationFailed": "Échec de la Génération du Rapport",
+      "deleteSubject": "DANGER: Supprimer la Matière"
+    },
+    "messages": {
+      "studentDeleted": "Étudiant supprimé avec succès!",
+      "studentUpdated": "Étudiant mis à jour avec succès!",
+      "studentCreated": "Étudiant créé avec succès!",
+      "subjectDeleted": "supprimé avec succès!",
+      "subjectUpdated": "Matière mise à jour avec succès!",
+      "subjectCreated": "Matière créée avec succès!",
+      "credentialsCopied": "Identifiants copiés dans le presse-papiers!",
+      "parentNotAvailable": "Identifiants parent non disponibles pour cet étudiant.",
+      "fillRequiredFields": "Veuillez remplir tous les champs requis: Prénom, Nom et Niveau.",
+      "fillParentInfo": "Veuillez remplir le nom et l'email du parent pour l'inscription d'un nouveau parent.",
+      "selectExistingParent": "Veuillez sélectionner un parent existant.",
+      "selectSubjectType": "Veuillez sélectionner un type de matière",
+      "failedToCreateStudent": "Échec de la création de l'étudiant. Veuillez réessayer.",
+      "failedToUpdateStudent": "Échec de la mise à jour de l'étudiant. Veuillez réessayer.",
+      "failedToDeleteStudent": "Échec de la suppression de l'étudiant. Veuillez réessayer.",
+      "failedToCreateSubject": "Échec de la création de la matière:",
+      "failedToUpdateSubject": "Échec de la mise à jour de la matière:",
+      "failedToDeleteSubject": "Échec de la suppression de la matière:",
+      "failedToGenerateReport": "Échec de la génération du rapport:",
+      "networkError": "Erreur réseau. Veuillez réessayer.",
+      "nameNotMatch": "Le nom ne correspond pas. Action annulée.",
+      "deleteSubjectWarning": "Cela supprimera définitivement la matière",
+      "deleteSubjectConfirm": "Pour confirmer la suppression, veuillez taper le nom de la matière exactement:",
+      "typeSubjectName": "Tapez le nom de la matière:",
+      "teacherDeleted": "Enseignant supprimé avec succès!",
+      "teacherUpdated": "Enseignant mis à jour avec succès!",
+      "teacherCreated": "Enseignant créé avec succès!",
+      "failedToCreateTeacher": "Échec de la création de l'enseignant. Veuillez réessayer.",
+      "failedToUpdateTeacher": "Échec de la mise à jour de l'enseignant. Veuillez réessayer.",
+      "failedToDeleteTeacher": "Échec de la suppression de l'enseignant. Veuillez réessayer.",
+      "fillTeacherRequiredFields": "Veuillez remplir tous les champs requis et sélectionner au moins une matière.",
+      "authenticationError": "Erreur d'authentification. Veuillez vous reconnecter.",
+      "parentDeleted": "Parent supprimé avec succès!",
+      "parentUpdated": "Parent mis à jour avec succès!",
+      "parentCreated": "Parent créé avec succès!",
+      "failedToCreateParent": "Échec de la création du parent. Veuillez réessayer.",
+      "failedToUpdateParent": "Échec de la mise à jour du parent. Veuillez réessayer.",
+      "failedToDeleteParent": "Échec de la suppression du parent. Veuillez réessayer."
+    },
+    "buttons": {
+      "ok": "OK",
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "confirm": "Confirmer"
+    },
+    "deleteConfirmation": {
+      "title": "Supprimer",
+      "cannotBeUndone": "Cette action ne peut pas être annulée",
+      "willPermanentlyDelete": "Ceci supprimera définitivement:",
+      "typeToConfirm": "Tapez",
+      "toConfirm": "pour confirmer:",
+      "typeHere": "Tapez",
+      "here": "ici",
+      "mustMatchExactly": "Doit correspondre exactement:",
+      "confirmationMatches": "Le texte de confirmation correspond",
+      "deleting": "Suppression...",
+      "safetyNotice": "Avis de Sécurité:",
+      "safetyMessage": "Cette suppression est permanente et ne peut pas être annulée. Assurez-vous d'avoir des sauvegardes si nécessaire.",
+      "student": {
+        "title": "Supprimer l'étudiant",
+        "item1": "Compte étudiant et identifiants de connexion",
+        "item2": "Tout l'historique des conversations et les progrès",
+        "item3": "Inscription aux classes",
+        "item4": "Relations parent-étudiant"
+      },
+      "teacher": {
+        "title": "Supprimer l'enseignant",
+        "item1": "Compte enseignant et identifiants de connexion",
+        "item2": "Affectations de classes et relations",
+        "item3": "Historique d'enseignement et rapports"
+      },
+      "parent": {
+        "title": "Supprimer le parent",
+        "item1": "Compte parent et identifiants de connexion",
+        "item2": "Liens vers tous les enfants",
+        "item3": "Accès aux rapports des étudiants"
+      },
+      "class": {
+        "title": "Supprimer la classe",
+        "item1": "Classe et tous ses paramètres",
+        "item2": "Inscriptions des étudiants (les étudiants seront désassignés)",
+        "item3": "Affectations d'enseignants",
+        "item4": "Données de performance de la classe"
+      }
+    }
+  },
+  "studentRegistration": {
+    "title": "Créer Votre Compte",
+    "subtitle": "Inscrivez-vous en tant qu'étudiant pour commencer à apprendre",
+    "backToLogin": "← Retour à la Connexion",
+    "form": {
+      "title": "Inscription Étudiante",
+      "description": "Remplissez vos informations pour créer votre compte",
+      "fullName": "Nom Complet *",
+      "fullNamePlaceholder": "Entrez votre nom complet",
+      "age": "Âge *",
+      "agePlaceholder": "Entrez votre âge (8-28)",
+      "school": "École *",
+      "schoolPlaceholder": "Tapez pour rechercher votre école",
+      "schoolLoading": "Chargement des écoles...",
+      "schoolNotFound": "Aucune école trouvée correspondant à",
+      "grade": "Niveau *",
+      "gradePlaceholder": "Sélectionnez votre niveau",
+      "createAccount": "Créer un Compte",
+      "creatingAccount": "Création du Compte...",
+      "alreadyHaveAccount": "Vous avez déjà un compte?",
+      "loginHere": "Connectez-vous Ici"
+    },
+    "errors": {
+      "enterName": "Veuillez entrer votre nom",
+      "enterValidAge": "Veuillez entrer un âge valide (8-28)",
+      "selectSchool": "Veuillez sélectionner une école",
+      "selectGrade": "Veuillez sélectionner votre niveau",
+      "registrationFailed": "L'inscription a échoué. Veuillez réessayer.",
+      "networkError": "Erreur réseau. Veuillez vérifier votre connexion et réessayer."
+    },
+    "credentials": {
+      "title": "🎓 Compte Créé avec Succès!",
+      "name": "Nom:",
+      "school": "École:",
+      "username": "Nom d'utilisateur:",
+      "password": "Mot de passe:",
+      "warning": "⚠️ Veuillez enregistrer ces identifiants. Vous en aurez besoin pour vous connecter.",
+      "copyCredentials": "📋 Copier les Identifiants",
+      "loginNow": "Se Connecter Maintenant",
+      "close": "Fermer",
+      "copied": "Identifiants copiés dans le presse-papiers!",
+      "copyText": "Identifiants de Connexion Étudiant:\n\nNom: {name}\nÉcole: {school}\nNom d'utilisateur: {username}\nMot de passe: {password}\n\nVeuillez enregistrer ces identifiants. Vous en aurez besoin pour vous connecter."
+    },
+    "grades": {
+      "premier": "Premier Année",
+      "deuxieme": "Deuxième Année",
+      "troisieme": "Troisième Année",
+      "quatrieme": "Quatrième Année",
+      "bac": "Baccalauréat (BAC)"
+    }
+  }
+}

@@ -1,0 +1,766 @@
+// BrightTutor Database Schema
+// Multi-tenant SaaS architecture for AI tutoring platform
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===================================
+// PLATFORM LEVEL TABLES
+// ===================================
+
+// Subscription Plans: TRIAL, BASIC_50, STANDARD_100, PREMIUM_500
+// Subscription Status: PENDING, ACTIVE, SUSPENDED, REJECTED, EXPIRED
+
+model School {
+  id           String  @id @default(cuid())
+  schoolName   String  @map("school_name")
+  domainName   String? @unique @map("domain_name") // Optional custom domain
+  contactEmail String  @map("contact_email")
+  contactPhone String? @map("contact_phone")
+  wilaya       String? @map("wilaya") // Mauritanian State/Region
+  address      String? @map("address")
+
+  // Application & Approval System
+  applicationStatus String    @default("PENDING") @map("application_status") // PENDING, ACTIVE, SUSPENDED, REJECTED, EXPIRED
+  applicationDate   DateTime  @default(now()) @map("application_date")
+  approvedDate      DateTime? @map("approved_date")
+  approvedBy        String?   @map("approved_by") // Platform admin ID
+  rejectionReason   String?   @map("rejection_reason")
+
+  // Subscription & Billing
+  subscriptionPlan   String    @default("TRIAL") @map("subscription_plan") // TRIAL, BASIC_50, STANDARD_100, PREMIUM_500
+  subscriptionStatus String    @default("PENDING") @map("subscription_status") // PENDING, ACTIVE, SUSPENDED, REJECTED, EXPIRED
+  subscriptionStart  DateTime? @map("subscription_start")
+  subscriptionEnd    DateTime? @map("subscription_end")
+  pricingMRU         Int?      @map("pricing_mru") // Price in Mauritanian Ouguiya
+  paymentConfirmed   Boolean   @default(false) @map("payment_confirmed")
+
+  // School Admin
+  adminUserId   String @map("admin_user_id")
+  adminName     String @map("admin_name")
+  adminEmail    String @unique @map("admin_email") // Global unique - no two schools can have same admin email
+  adminPassword String @map("admin_password") // Hashed
+
+  // Limits based on plan
+  maxStudents Int @default(10) @map("max_students")
+  maxTeachers Int @default(2) @map("max_teachers")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  admins            SchoolAdmin[]
+  teachers          Teacher[]
+  students          Student[]
+  classes           Class[]
+  parents           Parent[]
+  assignments       Assignment[]
+  subjects          Subject[]
+  studentAIContexts StudentAIContext[]
+
+  @@map("schools")
+}
+
+model SchoolAdmin {
+  id           String   @id @default(cuid())
+  schoolId     String   @map("school_id")
+  email        String // Removed @unique - now unique per school
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  role         String   @default("TEACHER") @map("role") // SUPER_ADMIN, ADMIN, TEACHER
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  school             School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  uploadedCurriculum CurriculumMonthly[] @relation("uploader")
+
+  @@unique([schoolId, email]) // Unique email per school
+  @@map("school_admins")
+}
+
+// ===================================
+// SCHOOL-SPECIFIC TABLES (Multi-tenant)
+// ===================================
+
+model Subject {
+  id          String   @id @default(cuid())
+  schoolId    String   @map("school_id")
+  name        String   @map("name")
+  description String?  @map("description")
+  language    String   @default("French") @map("language") // ✅ ADD: Language the subject is taught in (Arabic, French, English)
+  icon        String   @default("📖") @map("icon")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // ✅ NEW: Subject type for curriculum mapping
+  subjectType String? @map("subject_type") // MATH, SCIENCE, PHYSICS
+
+  // Relationships
+  school        School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classSubjects ClassSubject[]
+
+  @@unique([schoolId, name]) // Ensure unique subject names within a school
+  @@map("subjects")
+}
+
+model Class {
+  id           String   @id @default(cuid())
+  schoolId     String   @map("school_id")
+  gradeLevel   String   @map("grade_level") // "Grade 1", "Grade 2", etc.
+  className    String   @map("class_name") // "Grade 1A", "Mathematics Advanced"
+  description  String?  @map("class_description") // Description of students, age groups, learning approach
+  teacherId    String?  @map("teacher_id")
+  academicYear String   @map("academic_year") // "2024-2025"
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // ✅ NEW: French classroom year for curriculum mapping
+  classroomYear String? @map("classroom_year") // PREMIER_COLLEGE, DEUXIEME_COLLEGE, TROISIEME_COLLEGE, QUATRIEME_COLLEGE
+
+  // Relationships
+  school      School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  students    Student[]
+  curriculum  CurriculumMonthly[]
+  assignments Assignment[]
+
+  // New relationships
+  teacherClasses TeacherClass[]
+  classSubjects  ClassSubject[]
+
+  @@map("classes")
+}
+
+// Junction table for many-to-many class-subject relationship
+model ClassSubject {
+  id        String @id @default(cuid())
+  classId   String @map("class_id")
+  subjectId String @map("subject_id")
+
+  // Relationships
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, subjectId])
+  @@map("class_subjects")
+}
+
+model CurriculumMonthly {
+  id                 String   @id @default(cuid())
+  classId            String   @map("class_id")
+  month              Int // 1-12
+  year               Int
+  subjects           String   @default("[]") // JSON string: ["Mathematics", "English", "Science"]
+  learningObjectives String   @map("learning_objectives") // What students should learn this month
+  uploadedBy         String   @map("uploaded_by")
+  uploadedAt         DateTime @default(now()) @map("uploaded_at")
+
+  // Relationships
+  class    Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  uploader SchoolAdmin @relation("uploader", fields: [uploadedBy], references: [id])
+
+  @@unique([classId, month, year])
+  @@map("curriculum_monthly")
+}
+
+model Student {
+  id                    String    @id @default(cuid())
+  schoolId              String    @map("school_id")
+  classId               String?   @map("class_id") // Made optional - students can be created without a class
+  studentName           String    @map("student_name")
+  studentId             String    @map("student_id") // School's internal ID
+  username              String?   @map("username") // For login
+  password              String?   @map("password") // Hashed
+  age                   Int?      @map("age")
+  dateOfBirth           DateTime? @map("date_of_birth")
+  gender                String?   @map("gender") // "male" | "female"
+  grade                 String?   @map("grade") // "Grade 6A"
+  learningStyle         String?   @map("learning_style") // VISUAL, AUDITORY, KINESTHETIC, MIXED
+  interests             String    @default("[]") // JSON string: ["sports", "art", "music"]
+  aiPersonalityProfile  String?   @map("ai_personality_profile") // JSON string: AI's learned traits
+  createdAt             DateTime  @default(now()) @map("created_at")
+  isActive              Boolean   @default(true) @map("is_active")
+  isSelfRegistered      Boolean   @default(false) @map("is_self_registered") // Track if student registered themselves
+  lastViewedCommunityAt DateTime? @map("last_viewed_community_at") // Track when student last viewed community chat
+  languagePreference    String?   @default("fr") @map("language_preference") // AI response language: 'fr' or 'ar'
+  lastLogin             DateTime? @map("last_login") // Track last login time for inactive reminder notifications (10-hour check)
+  totalTokensUsed       Int       @default(0) @map("total_tokens_used") // Total AI tokens used by this student (for BAC dashboard)
+
+  // Parent Information
+  parentName  String? @map("parent_name")
+  parentPhone String? @map("parent_phone")
+  parentEmail String? @map("parent_email")
+
+  // Relationships
+  school               School                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  class                Class?                @relation(fields: [classId], references: [id], onDelete: Cascade) // Made optional
+  conversations        AIConversation[]
+  monthlyReports       MonthlyReport[]
+  assignmentProgress   AssignmentProgress[]
+  aiPersonality        AIPersonality?
+  studentParents       StudentParent[]
+  studentAIContexts    StudentAIContext[]
+  studentEngagement    StudentEngagement[]
+  quizSessions         QuizSession[]
+  studentKnowledgeBase StudentKnowledgeBase?
+  pushTokens           StudentPushToken[]
+  communityMessages    CommunityMessage[]
+  bacExercises         BacExercise[]         @relation("BacExercises")
+  bacPartCompletions   BacPartCompletion[]   @relation("BacPartCompletions")
+  sessions             StudentSession[]
+
+  @@unique([schoolId, studentId]) // Ensure unique student ID within school
+  @@map("students")
+}
+
+// NEW: AI PERSONALITY PROFILE PER STUDENT
+model AIPersonality {
+  id        String  @id @default(cuid())
+  studentId String  @unique @map("student_id")
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Personality Data
+  communicationStyle String? @map("communication_style") // "Encouraging", "Patient", "Energetic"
+  motivationTriggers String  @default("[]") @map("motivation_triggers") // JSON: ["Sports analogies", "Achievement badges"]
+  learningProgress   String  @default("{}") @map("learning_progress") // JSON: Track what student has mastered
+
+  // Conversation Memory
+  keyTopics       String @default("[]") @map("key_topics") // JSON: Topics student often asks about
+  strugglingAreas String @default("[]") @map("struggling_areas") // JSON: Areas where student needs help
+  achievements    String @default("[]") @map("achievements") // JSON: Things student has accomplished
+
+  // Learning Preferences
+  preferredExplanationStyle String? @map("preferred_explanation_style") // "Visual", "Step-by-step", "Analogies"
+  responseToEncouragement   String? @map("response_to_encouragement") // How student responds to motivation
+  attentionSpan             Int?    @map("attention_span") // Minutes of focused learning
+
+  // Conversation Intelligence
+  conversationState String? @map("conversation_state") // JSON: Track conversation context to prevent loops
+
+  lastInteraction DateTime @default(now()) @map("last_interaction")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_personalities")
+}
+
+model AIConversation {
+  id                String  @id @default(cuid())
+  studentId         String  @map("student_id")
+  messageType       String  @map("message_type") // TEXT, VOICE, IMAGE
+  studentMessage    String  @map("student_message")
+  aiResponse        String  @map("ai_response")
+  conversationTopic String? @map("conversation_topic")
+  subjectArea       String? @map("subject_area")
+  difficultyLevel   Int?    @map("difficulty_level") // 1-10
+
+  // Enhanced tracking for AI learning
+  extractedTopics   String? @map("extracted_topics") // JSON: Topics discussed
+  studentSentiment  String? @map("student_sentiment") // "confused", "excited", "frustrated"
+  helpfulnessRating Int?    @map("helpfulness_rating") // 1-5 if student provides feedback
+  assignmentId      String? @map("assignment_id") // If related to specific assignment
+  teacherId         String? @map("teacher_id") // Which teacher's content this relates to
+
+  timestamp DateTime @default(now())
+
+  // Relationships
+  student    Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignment Assignment? @relation(fields: [assignmentId], references: [id])
+  teacher    Teacher?    @relation(fields: [teacherId], references: [id])
+
+  @@map("ai_conversations")
+}
+
+model MonthlyReport {
+  id                 String   @id @default(cuid())
+  studentId          String   @map("student_id")
+  month              Int // 1-12
+  year               Int
+  strengths          String   @default("[]") // JSON string: What they're good at
+  struggles          String   @default("[]") // JSON string: What they need help with
+  topicsCovered      String   @default("[]") @map("topics_covered") // JSON string
+  questionsAsked     Int      @map("questions_asked")
+  engagementScore    Int      @map("engagement_score") // 1-100
+  aiGeneratedSummary String   @map("ai_generated_summary")
+  generatedAt        DateTime @default(now()) @map("generated_at")
+
+  // Relationships
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, month, year])
+  @@map("monthly_reports")
+}
+
+// ===================================
+// TEACHER & ASSIGNMENT SYSTEM
+// ===================================
+
+model Teacher {
+  id        String   @id @default(cuid())
+  name      String   @map("teacher_name")
+  email     String   @map("teacher_email") // Removed @unique - now unique per school
+  password  String   @map("teacher_password")
+  schoolId  String   @map("school_id")
+  subjects  String   @default("[]") @map("subjects") // JSON: ["Mathematics", "Science"]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  school         School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  teacherClasses TeacherClass[]
+  assignments    Assignment[]
+  conversations  AIConversation[]
+
+  @@unique([schoolId, email]) // Unique email per school
+  @@map("teachers")
+}
+
+// NEW: ASSIGNMENTS SYSTEM
+model Assignment {
+  id        String @id @default(cuid())
+  teacherId String @map("teacher_id")
+  schoolId  String @map("school_id")
+  classId   String @map("class_id")
+
+  title       String   @map("title")
+  description String   @map("description")
+  subject     String   @map("subject")
+  dueDate     DateTime @map("due_date")
+  dueTime     String   @map("due_time") // "23:59"
+  priority    String   @map("priority") // "low", "medium", "high"
+  points      Int      @default(100) @map("points")
+  status      String   @default("published") @map("status") // "draft", "published", "closed"
+
+  // Assigned classes (JSON array of class IDs)
+  assignedClasses String @default("[]") @map("assigned_classes") // JSON: ["classId1", "classId2"]
+
+  // File and teaching instructions for AI integration
+  fileName             String? @map("file_name") // Original filename if uploaded
+  fileSize             Int?    @map("file_size") // File size in bytes
+  fileType             String? @map("file_type") // MIME type
+  teachingInstructions String? @map("teaching_instructions") // Instructions for AI on how to help with this assignment
+
+  // Relationships
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  school  School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  // Progress tracking
+  assignmentProgress AssignmentProgress[]
+  conversations      AIConversation[]
+  studentAIContexts  StudentAIContext[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("assignments")
+}
+
+// NEW: ASSIGNMENT PROGRESS TRACKING
+model AssignmentProgress {
+  id           String @id @default(cuid())
+  assignmentId String @map("assignment_id")
+  studentId    String @map("student_id")
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Progress Data
+  status            String    @default("not_started") @map("status") // "not_started", "in_progress", "completed"
+  timeSpent         Int       @default(0) @map("time_spent") // Minutes spent on assignment
+  questionsAsked    Int       @default(0) @map("questions_asked") // Number of AI questions about this assignment
+  lastWorkedOn      DateTime? @map("last_worked_on")
+  completionPercent Int       @default(0) @map("completion_percent")
+
+  // AI Interaction Data
+  strugglingTopics String @default("[]") @map("struggling_topics") // JSON: What student finds difficult
+  masteredTopics   String @default("[]") @map("mastered_topics") // JSON: What student understands well
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([assignmentId, studentId])
+  @@map("assignment_progress")
+}
+
+model Parent {
+  id        String   @id @default(cuid())
+  name      String   @map("parent_name")
+  username  String   @unique @map("parent_username") // Auto-generated like "ahmed47"
+  password  String   @map("parent_password") // Auto-generated like "kj29mz"
+  email     String   @map("parent_email") // Removed @unique - now unique per school
+  phone     String?  @map("parent_phone")
+  schoolId  String   @map("school_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  school         School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentParents StudentParent[]
+
+  @@unique([schoolId, email]) // Unique email per school
+  @@map("parents")
+}
+
+// Junction table for many-to-many teacher-class relationship
+model TeacherClass {
+  id        String  @id @default(cuid())
+  teacherId String  @map("teacher_id")
+  classId   String  @map("class_id")
+  subject   String? @map("subject") // Optional: what subject they teach for this class
+
+  // Relationships
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, classId])
+  @@map("teacher_classes")
+}
+
+// Junction table for many-to-many student-parent relationship
+model StudentParent {
+  id        String @id @default(cuid())
+  studentId String @map("student_id")
+  parentId  String @map("parent_id")
+
+  // Relationships
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  parent  Parent  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, parentId])
+  @@map("student_parents")
+}
+
+// Platform Admin (Super Admin) - separate from school admins
+model PlatformAdmin {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String // Hashed
+  fullName  String    @map("full_name")
+  role      String    @default("PLATFORM_ADMIN")
+  isActive  Boolean   @default(true) @map("is_active")
+  lastLogin DateTime? @map("last_login")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("platform_admins")
+}
+
+// NEW: Student AI Context for personalized learning
+model StudentAIContext {
+  id        String @id @default(cuid())
+  studentId String @map("student_id")
+  subject   String @map("subject")
+  schoolId  String @map("school_id")
+
+  // Assignment context
+  assignmentId String? @map("assignment_id")
+
+  // Teaching materials and instructions
+  fileName             String? @map("file_name")
+  fileType             String? @map("file_type")
+  teachingInstructions String? @map("teaching_instructions")
+
+  // AI learning context
+  personalizedNotes String? @map("personalized_notes") // AI-generated notes for this student
+  learningStyle     String? @map("learning_style") // How this student learns best
+  difficultyLevel   Int?    @map("difficulty_level") // 1-10 current difficulty level
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  student    Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  school     School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  assignment Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, subject])
+  @@map("student_ai_contexts")
+}
+
+// BILLION DOLLAR METRICS: Student Engagement Tracking
+model StudentEngagement {
+  id                String   @id @default(cuid())
+  studentId         String   @map("student_id")
+  date              DateTime @default(now()) @map("date")
+  chatMessages      Int      @default(0) @map("chat_messages")
+  timeSpent         Int      @default(0) @map("time_spent") // in minutes
+  subjectsEngaged   String[] @map("subjects_engaged") // Array of subject names
+  assignmentsViewed Int      @default(0) @map("assignments_viewed")
+  quizzesTaken      Int      @default(0) @map("quizzes_taken")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_engagement")
+}
+
+// ANALYTICS: Screen-level session tracking for detailed analytics
+model StudentSession {
+  id            String    @id @default(cuid())
+  studentId     String    @map("student_id")
+  date          DateTime  @default(now()) @map("date") // Date only (for grouping by day)
+  sessionStart  DateTime  @default(now()) @map("session_start")
+  sessionEnd    DateTime? @map("session_end")
+  totalDuration Int       @default(0) @map("total_duration") // Total session duration in seconds
+
+  // Screen time breakdown (in seconds)
+  chatTime      Int @default(0) @map("chat_time")
+  mapTime       Int @default(0) @map("map_time")
+  rankingsTime  Int @default(0) @map("rankings_time")
+  communityTime Int @default(0) @map("community_time")
+  profileTime   Int @default(0) @map("profile_time")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, date])
+  @@index([date])
+  @@map("student_sessions")
+}
+
+model QuizSession {
+  id             String    @id @default(cuid())
+  studentId      String    @map("student_id")
+  subject        String    @map("subject")
+  questions      String    @map("questions") // JSON string of quiz questions
+  answers        String?   @map("answers") // JSON string of student answers
+  results        String?   @map("results") // JSON string of question results
+  score          Int?      @map("score")
+  totalQuestions Int?      @map("total_questions")
+  percentage     Float?    @map("percentage")
+  timeSpent      Int?      @map("time_spent") // in seconds
+  startTime      DateTime  @default(now()) @map("start_time")
+  endTime        DateTime? @map("end_time")
+  status         String    @default("active") @map("status") // active, completed, abandoned
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relationships
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_sessions")
+}
+
+// Persistent student knowledge base (subject-agnostic consolidated memory)
+model StudentKnowledgeBase {
+  id        String @id @default(cuid())
+  studentId String @unique @map("student_id")
+
+  // Compact, human-readable article for the tutor (periodically summarized)
+  article String @default("") @map("article")
+
+  // Structured slices the tutor can use
+  recentTopics       String[] @map("recent_topics")
+  strugglingAreas    String[] @map("struggling_areas")
+  effectiveMethods   String[] @map("effective_methods")
+  lessonPlansDigest  String   @default("") @map("lesson_plans_digest")
+  quizHistorySummary String   @default("") @map("quiz_history_summary")
+
+  // Size/versioning
+  version   Int      @default(1) @map("version")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_knowledge_base")
+}
+
+// Push Notification Tokens for Mobile App
+model StudentPushToken {
+  id            String   @id @default(cuid())
+  studentId     String   @map("student_id")
+  expoPushToken String   @map("expo_push_token")
+  platform      String   @default("unknown") // "ios" | "android" | "unknown"
+  deviceId      String   @default("default") @map("device_id")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, deviceId])
+  @@map("student_push_tokens")
+}
+
+// Community Group Chat Messages
+// Students in the same classroomYear can chat together (like WhatsApp groups)
+// Only keeps latest 50 messages per classroomYear (oldest deleted automatically)
+model CommunityMessage {
+  id               String   @id @default(cuid())
+  studentId        String   @map("student_id")
+  classroomYear    String   @map("classroom_year") // PREMIER_COLLEGE, DEUXIEME_COLLEGE, TROISIEME_COLLEGE, QUATRIEME_COLLEGE
+  message          String   @map("message")
+  messageType      String   @default("TEXT") @map("message_type") // TEXT, IMAGE, VOICE
+  timestamp        DateTime @default(now()) @map("timestamp")
+  replyToMessageId String?  @map("reply_to_message_id") // Optional: ID of message being replied to
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([classroomYear, timestamp])
+  @@map("community_messages")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BAC ASSISTANT MODELS
+// ═══════════════════════════════════════════════════════════════
+
+model BacExercise {
+  id             String   @id @default(cuid())
+  studentId      String   @map("student_id")
+  exerciseId     String   @map("exercise_id") // Format: "bac-2023-ex1", "bac-2023-ex2", etc.
+  currentPartId  String   @map("current_part_id") // Format: "1a", "1b", "2a", etc.
+  completedParts String[] @map("completed_parts") // Array of completed part IDs
+  totalScore     Int      @default(0) @map("total_score") // Points earned out of 19
+  startedAt      DateTime @default(now()) @map("started_at")
+  lastAccessedAt DateTime @updatedAt @map("last_accessed_at")
+
+  // Relations
+  student Student @relation("BacExercises", fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@unique([studentId, exerciseId])
+  @@index([studentId])
+  @@index([exerciseId])
+  @@map("bac_exercises")
+}
+
+model BacPartCompletion {
+  id          String    @id @default(cuid())
+  studentId   String    @map("student_id")
+  exerciseId  String    @map("exercise_id") // "bac-2023-ex1"
+  partId      String    @map("part_id") // "1a", "1b", etc.
+  attempts    Int       @default(0)
+  completed   Boolean   @default(false)
+  score       Float     @default(0) // Points for this part
+  timeSpent   Int       @default(0) @map("time_spent") // Seconds spent on this part
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  student Student @relation("BacPartCompletions", fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@unique([studentId, exerciseId, partId])
+  @@index([studentId])
+  @@map("bac_part_completions")
+}
+
+// BAC Course Cache: Stores AI-generated courses with ratings
+// Multiple courses per exercise allowed - keeps all generated courses
+// When a course is rated better than others, inferior courses are deleted
+model BacCourseCache {
+  id            String   @id @default(cuid())
+  exerciseId    String   @map("exercise_id") // "bac-2023-ex1"
+  courseContent String   @map("course_content") // Full course content generated by AI
+  averageRating Float    @default(0) @map("average_rating") // Average of all ratings (1-5)
+  totalRatings  Int      @default(0) @map("total_ratings") // Number of ratings received
+  ratings       String   @default("[]") @map("ratings") // JSON array: [{studentId, rating, createdAt}]
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Indexes - Removed @@unique to allow multiple courses per exercise
+  @@index([exerciseId])
+  @@index([exerciseId, averageRating]) // For finding best course per exercise
+  @@map("bac_course_cache")
+}
+
+// BAC Question Cache: Stores pre-generated questions for instant loading
+// Questions are pre-generated once and reused for all students
+// This ensures fast loading without AI generation delays
+model BacQuestionCache {
+  id         String   @id @default(cuid())
+  exerciseId String   @map("exercise_id") // "bac-2023-ex1"
+  partId     String   @map("part_id") // "1a", "1b", etc.
+  question   String   @map("question") // Pre-generated question text
+  validated  Boolean  @default(true) @map("validated") // Whether question passed validation
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Indexes
+  @@unique([exerciseId, partId]) // One question per exercise+part combination
+  @@index([exerciseId]) // For loading all questions for an exercise
+  @@map("bac_question_cache")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STORED BAC EXERCISES - Pre-generated exercises stored in database
+// ═══════════════════════════════════════════════════════════════
+
+// Stores complete BAC exercises (one per chapter) with all their parts
+// This replaces dynamic generation - exercises are generated once and reused
+model StoredBacExercise {
+  id            String   @id @default(cuid())
+  chapterId     String   @map("chapter_id") // e.g., "bac-2023", "bac-d-2023", "bac-physique-2023"
+  exerciseId    String   @map("exercise_id") // e.g., "bac-2023-ex1", "bac-2023-ex2"
+  title         String   @map("title")
+  description   String   @map("description")
+  subject       String   @map("subject") // "Mathématiques", "Physique", "Sciences"
+  difficulty    String   @default("Moyen") @map("difficulty") // "Facile", "Moyen", "Difficile"
+  concepts      String[] @map("concepts") // Array of concept names
+  objectives    String[] @map("objectives") // Array of learning objectives
+  partSequence  String[] @map("part_sequence") // Array of part IDs in order: ["1a", "1b", "1c", ...]
+  enonceComplet String?  @map("enonce_complet") // Full exercise statement (optional)
+  
+  // Metadata
+  generatedAt   DateTime @default(now()) @map("generated_at")
+  generatedBy   String?  @map("generated_by") // System or admin ID
+  version       Int      @default(1) @map("version") // Version number for updates
+  isActive      Boolean  @default(true) @map("is_active") // Can disable without deleting
+  
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  parts         StoredBacExercisePart[]
+  
+  // Indexes
+  @@unique([chapterId, exerciseId]) // One exercise per chapter (for now)
+  @@index([chapterId])
+  @@index([exerciseId])
+  @@index([subject])
+  @@map("stored_bac_exercises")
+}
+
+// Stores individual parts of a stored BAC exercise
+// Each part contains the generated question and metadata
+model StoredBacExercisePart {
+  id          String   @id @default(cuid())
+  exerciseId String   @map("exercise_id") // Reference to StoredBacExercise
+  partId      String   @map("part_id") // e.g., "1a", "1b", "1c"
+  question    String   @map("question") // Generated question content (markdown with LaTeX)
+  type        String   @default("calcul") @map("type") // "calcul", "demonstration", "application"
+  difficulty  String   @default("Moyen") @map("difficulty") // Part-specific difficulty
+  validated   Boolean  @default(true) @map("validated") // Whether the question was validated
+  
+  // Order in sequence (for sorting)
+  orderIndex  Int      @map("order_index") // Position in the part sequence (0, 1, 2, ...)
+  
+  // Timestamps
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  exercise    StoredBacExercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  
+  // Indexes
+  @@unique([exerciseId, partId]) // One part per exercise+partId combination
+  @@index([exerciseId, orderIndex]) // For ordered retrieval
+  @@map("stored_bac_exercise_parts")
+}
