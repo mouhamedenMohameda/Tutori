@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
-import { validateEmail } from '@/lib/security/validation'
+import { AuthSchemas } from '@/lib/security/schemas'
 import { containsSQLInjection } from '@/lib/security/injection-prevention'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
 
@@ -38,6 +38,12 @@ function calculatePricing(plan: string) {
 router.post('/register', async (req: Request, res: Response) => {
   try {
     const body = req.body || {}
+    const parsed = AuthSchemas.register.safeParse(body)
+    if (!parsed.success) {
+      const first = parsed.error.flatten().fieldErrors
+      const msg = Object.values(first)[0]?.[0] ?? parsed.error.message
+      return res.status(400).json({ error: String(msg) })
+    }
     const {
       schoolName,
       contactEmail,
@@ -48,25 +54,10 @@ router.post('/register', async (req: Request, res: Response) => {
       adminEmail,
       password,
       subscriptionPlan,
-    } = body
-
-    if (!schoolName || !adminName || !adminEmail || !password) {
-      return res.status(400).json({
-        error: 'Missing required fields: school name, admin name, email, and password are required',
-      })
-    }
-
-    const emailValidation = validateEmail(adminEmail)
-    if (!emailValidation.valid) {
-      return res.status(400).json({ error: emailValidation.error || 'Invalid email format' })
-    }
+    } = parsed.data
 
     if (containsSQLInjection(adminEmail) || containsSQLInjection(schoolName)) {
       return res.status(400).json({ error: 'Invalid input detected' })
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' })
     }
 
     const existingSchool = await prisma.school.findFirst({

@@ -1,18 +1,16 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
 import { prisma } from '@/lib/prisma'
 import { createRateLimiter, rateLimitConfigs, getRateLimitHeaders } from '@/lib/rate-limit'
 import { sanitizeEmail, sanitizePassword } from '@/lib/sanitize'
 import { generateToken } from '@/lib/auth'
-import { getJWTSecret } from '@/lib/security/secrets'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
 import { generateEducationalResponse } from '@/lib/gemini'
+import { requireRole } from '@/lib/auth-middleware'
 
 const router = Router()
 const authRateLimiter = createRateLimiter(rateLimitConfigs.auth)
 const aiRateLimiter = createRateLimiter(rateLimitConfigs.aiGeneration)
-const JWT_SECRET = () => getJWTSecret()
 
 interface ParentPayload {
   parentId: string
@@ -22,22 +20,9 @@ interface ParentPayload {
 }
 
 function requireParent(req: Request, res: Response): ParentPayload | null {
-  const authHeader = req.headers.authorization
-  if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Authorization token required' })
-    return null
-  }
-  try {
-    const decoded = jwt.verify(authHeader.slice(7), JWT_SECRET()) as ParentPayload
-    if (decoded.role !== 'PARENT') {
-      res.status(403).json({ error: 'Access denied' })
-      return null
-    }
-    return decoded
-  } catch {
-    res.status(401).json({ error: 'Invalid token' })
-    return null
-  }
+  const auth = requireRole(req, res, ['PARENT'])
+  if (!auth) return null
+  return auth as ParentPayload
 }
 
 // GET /parent/profile

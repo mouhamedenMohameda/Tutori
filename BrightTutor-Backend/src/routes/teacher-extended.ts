@@ -3,14 +3,12 @@
  * dashboard/stats, students, reports, profile, assignments, assignments/remove-file
  */
 import { Router, Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
 import { prisma } from '@/lib/prisma'
-import { getJWTSecret } from '@/lib/security/secrets'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
 import { validateId } from '@/lib/security/validation'
+import { requireRole } from '@/lib/auth-middleware'
 
 const router = Router()
-const JWT_SECRET = () => getJWTSecret()
 
 interface TeacherPayload {
   teacherId: string
@@ -20,22 +18,9 @@ interface TeacherPayload {
 }
 
 function requireTeacher(req: Request, res: Response): TeacherPayload | null {
-  const authHeader = req.headers.authorization
-  if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Unauthorized' })
-    return null
-  }
-  try {
-    const decoded = jwt.verify(authHeader.slice(7), JWT_SECRET()) as TeacherPayload
-    if (decoded.role !== 'TEACHER') {
-      res.status(403).json({ error: 'Forbidden' })
-      return null
-    }
-    return decoded
-  } catch {
-    res.status(401).json({ error: 'Invalid token' })
-    return null
-  }
+  const auth = requireRole(req, res, ['TEACHER'])
+  if (!auth) return null
+  return auth as TeacherPayload
 }
 
 // GET /teacher/classes — with performance

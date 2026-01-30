@@ -36,16 +36,16 @@ describe('Student routes', () => {
         .post('/api/student/login')
         .send({ username: 'student1' })
       expect(res.status).toBe(400)
-      expect(res.body.error).toMatch(/Password is required/i)
+      expect(res.body.error).toMatch(/Password|Required/i)
     })
 
-    it('returns 403 when student not found (no active nor inactive)', async () => {
+    it('returns 404 when student not found', async () => {
       mockFindFirst.mockResolvedValue(null)
       const res = await request(app)
         .post('/api/student/login')
         .send({ username: 'unknown', password: 'pass' })
-      expect(res.status).toBe(403)
-      expect(res.body.error).toMatch(/not found|inactive|account/i)
+      expect(res.status).toBe(404)
+      expect(res.body.error).toMatch(/not found/i)
     })
   })
 })

@@ -75,7 +75,7 @@ describe('Auth routes', () => {
           password: '12345',
         })
       expect(res.status).toBe(400)
-      expect(res.body.error).toMatch(/6 characters/)
+      expect(res.body.error).toMatch(/6 character/)
     })
 
     it('returns 409 when school with same name or email exists', async () => {

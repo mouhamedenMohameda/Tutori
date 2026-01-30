@@ -82,15 +82,24 @@ export const AuthSchemas = {
   
   register: z.object({
     schoolName: CommonSchemas.safeString,
-    contactEmail: CommonSchemas.email,
+    contactEmail: CommonSchemas.email.optional(),
     adminName: CommonSchemas.safeString,
     adminEmail: CommonSchemas.email,
-    password: CommonSchemas.password,
+    password: z.string().min(6).max(100),
     subscriptionPlan: z.enum(['TRIAL', 'BASIC_50', 'STANDARD_100', 'PREMIUM_500']).optional(),
     wilaya: z.string().max(100).optional(),
     address: z.string().max(200).optional(),
-    contactPhone: CommonSchemas.phone,
+    contactPhone: CommonSchemas.phone.optional(),
   }),
+  schoolLogin: z.object({
+    email: CommonSchemas.email,
+    password: z.string().min(1).max(100),
+  }),
+  studentLogin: z.object({
+    username: z.string().min(1).max(100).optional(),
+    email: z.string().email().max(254).optional(),
+    password: z.string().min(1).max(100),
+  }).refine((d) => d.email ?? d.username, { message: 'Username or email is required' }),
   
   studentRegister: z.object({
     name: CommonSchemas.safeString,

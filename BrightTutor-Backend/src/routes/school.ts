@@ -1,14 +1,15 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
 import { prisma } from '@/lib/prisma'
 import { createRateLimiter, rateLimitConfigs, getRateLimitHeaders } from '@/lib/rate-limit'
 import { sanitizeEmail, sanitizePassword } from '@/lib/sanitize'
-import { getJWTSecret } from '@/lib/security/secrets'
-import { validateEmail, validateDatabaseInput } from '@/lib/security/validation'
+import { AuthSchemas } from '@/lib/security/schemas'
+import { validateDatabaseInput } from '@/lib/security/validation'
 import { containsSQLInjection } from '@/lib/security/injection-prevention'
 import { generateToken } from '@/lib/auth'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
+import { requireRole } from '@/lib/auth-middleware'
+import { parsePaginationFromExpress, createPaginationResponse } from '@/lib/pagination'
 
 const router = Router()
 
@@ -45,25 +46,11 @@ async function generateUniqueParentUsername(firstName: string, lastName: string)
   }
 }
 const authRateLimiter = createRateLimiter(rateLimitConfigs.auth)
-const JWT_SECRET = () => getJWTSecret()
 
 function requireSchoolAdmin(req: Request, res: Response): { schoolId: string } | null {
-  const authHeader = req.headers.authorization
-  if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Authorization required' })
-    return null
-  }
-  try {
-    const decoded = jwt.verify(authHeader.slice(7), JWT_SECRET()) as any
-    if (decoded.role !== 'SCHOOL_ADMIN') {
-      res.status(403).json({ error: 'Access denied' })
-      return null
-    }
-    return { schoolId: decoded.schoolId }
-  } catch {
-    res.status(401).json({ error: 'Invalid token' })
-    return null
-  }
+  const auth = requireRole(req, res, ['SCHOOL_ADMIN'])
+  if (!auth?.schoolId) return null
+  return { schoolId: auth.schoolId }
 }
 
 router.post('/login', async (req: Request, res: Response) => {
@@ -80,13 +67,14 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const rawData = req.body || {}
-    let email = sanitizeEmail(rawData.email)
-    const password = sanitizePassword(rawData.password)
-
-    const emailValidation = validateEmail(email)
-    if (!emailValidation.valid) {
-      return res.status(400).json({ error: emailValidation.error || 'Invalid email format' })
+    const parsed = AuthSchemas.schoolLogin.safeParse(rawData)
+    if (!parsed.success) {
+      const first = parsed.error.flatten().fieldErrors
+      const msg = Object.values(first)[0]?.[0] ?? parsed.error.message
+      return res.status(400).json({ error: String(msg) })
     }
+    let email = sanitizeEmail(parsed.data.email)
+    const password = sanitizePassword(parsed.data.password)
     if (containsSQLInjection(email)) {
       return res.status(400).json({ error: 'Invalid input detected' })
     }
@@ -94,10 +82,6 @@ router.post('/login', async (req: Request, res: Response) => {
       email = validateDatabaseInput(email, 'email')
     } catch (err: any) {
       return res.status(400).json({ error: err?.message || 'Invalid email format' })
-    }
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' })
     }
 
     const school = await prisma.school.findFirst({
@@ -304,26 +288,32 @@ router.get('/students', async (req: Request, res: Response) => {
   try {
     const auth = requireSchoolAdmin(req, res)
     if (!auth) return
-    const students = await prisma.student.findMany({
-      where: { schoolId: auth.schoolId },
-      include: {
-        class: { select: { id: true, className: true } },
-        studentParents: {
-          include: {
-            parent: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-                email: true,
-                phone: true,
+    const { page, limit, skip } = parsePaginationFromExpress(req.query as Record<string, unknown>)
+    const [students, total] = await Promise.all([
+      prisma.student.findMany({
+        where: { schoolId: auth.schoolId },
+        include: {
+          class: { select: { id: true, className: true } },
+          studentParents: {
+            include: {
+              parent: {
+                select: {
+                  id: true,
+                  name: true,
+                  username: true,
+                  email: true,
+                  phone: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip,
+      }),
+      prisma.student.count({ where: { schoolId: auth.schoolId } }),
+    ])
     const formattedStudents = students.map((s: any) => ({
       id: s.id,
       studentName: s.studentName,
@@ -335,7 +325,8 @@ router.get('/students', async (req: Request, res: Response) => {
       parents: s.studentParents?.map((sp: any) => sp.parent) || [],
       createdAt: s.createdAt.toISOString(),
     }))
-    res.json({ success: true, students: formattedStudents })
+    const result = createPaginationResponse(formattedStudents, total, page, limit)
+    res.json({ success: true, students: result.data, pagination: result.pagination })
   } catch (error) {
     sendSanitizedError(res, error, 'school/students')
   }

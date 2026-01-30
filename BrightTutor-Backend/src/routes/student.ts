@@ -6,6 +6,7 @@ import { sanitizeUsername, sanitizeEmail, sanitizePassword } from '@/lib/sanitiz
 import { generateToken } from '@/lib/auth'
 import { getJWTSecret } from '@/lib/security/secrets'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
+import { AuthSchemas } from '@/lib/security/schemas'
 
 const router = Router()
 const authRateLimiter = createRateLimiter(rateLimitConfigs.auth)
@@ -28,16 +29,15 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const rawData = req.body || {}
-    const username = sanitizeUsername(rawData.username || rawData.email)
-    const email = sanitizeEmail(rawData.email)
-    const password = sanitizePassword(rawData.password)
-
-    if (!username && !email) {
-      return res.status(400).json({ error: 'Username or email is required' })
+    const parsed = AuthSchemas.studentLogin.safeParse(rawData)
+    if (!parsed.success) {
+      const first = parsed.error.flatten().fieldErrors
+      const msg = Object.values(first)[0]?.[0] ?? parsed.error.message
+      return res.status(400).json({ error: String(msg) })
     }
-    if (!password) {
-      return res.status(400).json({ error: 'Password is required' })
-    }
+    const username = sanitizeUsername(parsed.data.username ?? parsed.data.email ?? '')
+    const email = sanitizeEmail(parsed.data.email ?? '')
+    const password = sanitizePassword(parsed.data.password)
 
     const student = await prisma.student.findFirst({
       where: {
@@ -77,16 +77,18 @@ router.post('/login', async (req: Request, res: Response) => {
         },
         include: { school: { select: { schoolName: true, applicationStatus: true } } },
       })
-      if (inactiveStudent && !inactiveStudent.isActive) {
-        return res.status(403).json({
-          error:
-            'Your student account is inactive. Please contact your school administrator or platform support.',
-        })
-      }
-      if (inactiveStudent?.school?.applicationStatus !== 'ACTIVE') {
-        return res.status(403).json({
-          error: 'Your school account is not active. Please contact your school administrator.',
-        })
+      if (inactiveStudent) {
+        if (!inactiveStudent.isActive) {
+          return res.status(403).json({
+            error:
+              'Your student account is inactive. Please contact your school administrator or platform support.',
+          })
+        }
+        if (inactiveStudent.school?.applicationStatus !== 'ACTIVE') {
+          return res.status(403).json({
+            error: 'Your school account is not active. Please contact your school administrator.',
+          })
+        }
       }
       return res.status(404).json({
         error:

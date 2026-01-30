@@ -12,7 +12,7 @@ const CRON_SECRET = process.env.CRON_SECRET || 'your-cron-secret-change-in-produ
 
 function requireCronSecret(req: Request, res: Response): boolean {
   const authHeader = req.headers.authorization
-  if (authHeader && authHeader !== `Bearer ${CRON_SECRET}`) {
+  if (!authHeader || authHeader !== `Bearer ${CRON_SECRET}`) {
     res.status(401).json({ error: 'Unauthorized' })
     return false
   }

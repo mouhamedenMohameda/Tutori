@@ -5,6 +5,7 @@ module.exports = {
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/*.test.ts'],
   moduleNameMapper: {
+    '^@/lib/generateCertificate$': '<rootDir>/src/__tests__/mocks/generateCertificate.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   collectCoverageFrom: [
