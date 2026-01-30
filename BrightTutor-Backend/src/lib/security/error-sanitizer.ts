@@ -292,6 +292,21 @@ export function sanitizeError(
 }
 
 /**
+ * Send a consistent error response (for validation, auth, not-found, etc.)
+ * Shape: { error: string, code?: string }
+ */
+export function sendError(
+  res: Response,
+  statusCode: number,
+  message: string,
+  code?: string
+): void {
+  const body: SanitizedErrorResponse = { error: message }
+  if (code) body.code = code
+  res.status(statusCode).json(body)
+}
+
+/**
  * Send sanitized error via Express response
  * Use in API routes: sendSanitizedError(res, error, 'route-name')
  */

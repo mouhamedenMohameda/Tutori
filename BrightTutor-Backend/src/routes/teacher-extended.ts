@@ -1,14 +1,37 @@
 /**
  * Teacher routes: classes, available-classes, available-subjects, curriculum,
- * dashboard/stats, students, reports, profile, assignments, assignments/remove-file
+ * dashboard/stats, students, reports, profile, assignments, assignments/remove-file,
+ * lesson-plans/upload
  */
 import { Router, Request, Response } from 'express'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
 import { prisma } from '@/lib/prisma'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
 import { validateId } from '@/lib/security/validation'
 import { requireRole } from '@/lib/auth-middleware'
 
 const router = Router()
+
+const uploadDirLessonPlans = path.join(process.cwd(), 'public', 'uploads', 'lesson-plans')
+function ensureDir(dir: string) {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+}
+ensureDir(uploadDirLessonPlans)
+const storageLessonPlans = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    ensureDir(uploadDirLessonPlans)
+    cb(null, uploadDirLessonPlans)
+  },
+  filename: (_req, file, cb) => {
+    cb(null, `${Date.now()}-${(file.originalname || 'lesson_plan').replace(/[^a-zA-Z0-9.-]/g, '_')}`)
+  },
+})
+const uploadLessonPlan = multer({
+  storage: storageLessonPlans,
+  limits: { fileSize: 25 * 1024 * 1024 },
+}).single('file')
 
 interface TeacherPayload {
   teacherId: string
@@ -580,6 +603,93 @@ router.post('/assignments/remove-file', async (req: Request, res: Response) => {
   } catch (error) {
     sendSanitizedError(res, error, 'teacher/assignments/remove-file')
   }
+})
+
+// POST /teacher/lesson-plans/upload — formData: file, title, subject, gradeLevel, teacherId (optional, from JWT)
+router.post('/lesson-plans/upload', (req: Request, res: Response) => {
+  uploadLessonPlan(req, res, async (err) => {
+    if (err) {
+      return sendSanitizedError(res, err, 'teacher/lesson-plans/upload')
+    }
+    try {
+      const decoded = requireTeacher(req, res)
+      if (!decoded) return
+      const file = (req as any).file
+      const title = (req.body?.title || '').trim()
+      const subject = (req.body?.subject || '').trim()
+      const gradeLevel = (req.body?.gradeLevel || '').trim()
+      if (!title || !subject) {
+        return res.status(400).json({ error: 'Title and subject are required' })
+      }
+      const teacher = await prisma.teacher.findUnique({
+        where: { id: decoded.teacherId },
+        select: { schoolId: true },
+      })
+      if (!teacher) return res.status(404).json({ error: 'Teacher not found' })
+      const teacherClasses = await prisma.teacherClass.findMany({
+        where: { teacherId: decoded.teacherId },
+        include: { class: { select: { id: true, className: true, gradeLevel: true } } },
+      })
+      const classesToUse = gradeLevel
+        ? teacherClasses.filter((tc: any) => tc.class.gradeLevel === gradeLevel || tc.class.className.includes(gradeLevel))
+        : teacherClasses
+      const classList = classesToUse.length > 0 ? classesToUse : teacherClasses
+      const firstClass = classList[0]
+      if (!firstClass) {
+        return res.status(400).json({ error: 'No class assigned to this teacher' })
+      }
+      const assignedClassNames = classList.map((tc: any) => tc.class.className)
+      const dueDate = new Date()
+      dueDate.setFullYear(dueDate.getFullYear() + 1)
+      const assignment = await prisma.assignment.create({
+        data: {
+          teacherId: decoded.teacherId,
+          schoolId: teacher.schoolId,
+          classId: firstClass.class.id,
+          title,
+          description: `Lesson plan: ${subject} - ${gradeLevel || 'All'}`,
+          subject,
+          dueDate,
+          dueTime: '23:59',
+          priority: 'medium',
+          points: 100,
+          status: 'published',
+          assignedClasses: JSON.stringify(assignedClassNames),
+          fileName: file ? file.originalname || file.filename : null,
+          fileSize: file ? file.size : null,
+          fileType: file ? (file.mimetype || 'application/pdf') : null,
+        },
+      })
+      const students = await prisma.student.findMany({
+        where: { classId: { in: classList.map((tc: any) => tc.class.id) }, isActive: true },
+        select: { id: true },
+      })
+      if (students.length > 0) {
+        await prisma.assignmentProgress.createMany({
+          data: students.map((s) => ({
+            assignmentId: assignment.id,
+            studentId: s.id,
+            status: 'not_started',
+            timeSpent: 0,
+            questionsAsked: 0,
+            completionPercent: 0,
+          })),
+        })
+      }
+      res.json({
+        success: true,
+        message: 'Lesson plan uploaded successfully',
+        assignment: {
+          id: assignment.id,
+          title: assignment.title,
+          subject: assignment.subject,
+          dueDate: assignment.dueDate.toISOString(),
+        },
+      })
+    } catch (error) {
+      sendSanitizedError(res, error, 'teacher/lesson-plans/upload')
+    }
+  })
 })
 
 export default router

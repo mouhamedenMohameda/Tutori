@@ -23,6 +23,7 @@ describe('Cron routes', () => {
       const res = await request(app).post('/api/cron/daily-notifications')
       expect(res.status).toBe(401)
       expect(res.body.error).toMatch(/Unauthorized/i)
+      expect(res.body.code).toBe('AUTH_REQUIRED')
     })
 
     it('returns 401 when Authorization Bearer is wrong', async () => {

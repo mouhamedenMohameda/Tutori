@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { getJWTSecret } from '@/lib/security/secrets'
+import { sendError } from '@/lib/security/error-sanitizer'
 
 export interface JwtPayload {
   schoolId?: string
@@ -16,7 +17,7 @@ const getSecret = () => getJWTSecret()
 
 /**
  * Centralized auth: require Bearer token and one of the allowed roles.
- * Returns decoded payload or null (and sends 401/403).
+ * Returns decoded payload or null (and sends 401/403 with consistent shape).
  */
 export function requireRole(
   req: Request,
@@ -25,18 +26,18 @@ export function requireRole(
 ): JwtPayload | null {
   const authHeader = req.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Authorization required' })
+    sendError(res, 401, 'Authorization required', 'AUTH_REQUIRED')
     return null
   }
   try {
     const decoded = jwt.verify(authHeader.slice(7), getSecret()) as JwtPayload
     if (!allowedRoles.includes(decoded.role)) {
-      res.status(403).json({ error: 'Access denied' })
+      sendError(res, 403, 'Access denied', 'PERMISSION_DENIED')
       return null
     }
     return decoded
   } catch {
-    res.status(401).json({ error: 'Invalid token' })
+    sendError(res, 401, 'Invalid token', 'AUTH_INVALID')
     return null
   }
 }

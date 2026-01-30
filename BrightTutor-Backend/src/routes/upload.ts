@@ -31,14 +31,18 @@ const storageAudio = multer.diskStorage({
 const uploadImage = multer({ storage: storageImage, limits: { fileSize: 10 * 1024 * 1024 } })
 const uploadAudio = multer({ storage: storageAudio, limits: { fileSize: 25 * 1024 * 1024 } })
 
-// POST /upload-image — formData: image, studentId
+// POST /upload-image — formData: image, and one of studentId, teacherId, parentId
 router.post('/upload-image', uploadImage.single('image'), (req: Request, res: Response) => {
   try {
     const file = (req as any).file
     const studentId = req.body?.studentId
-    const idValidation = validateId(studentId)
-    if (!studentId || !idValidation.valid) {
-      return res.status(400).json({ error: idValidation.error || 'Valid studentId required' })
+    const teacherId = req.body?.teacherId
+    const parentId = req.body?.parentId
+    const hasStudent = studentId && validateId(studentId).valid
+    const hasTeacher = teacherId && validateId(teacherId).valid
+    const hasParent = parentId && validateId(parentId).valid
+    if (!hasStudent && !hasTeacher && !hasParent) {
+      return res.status(400).json({ error: 'Valid studentId, teacherId, or parentId required' })
     }
     if (!file) return res.status(400).json({ error: 'Image file required' })
     const url = `/uploads/images/${file.filename}`

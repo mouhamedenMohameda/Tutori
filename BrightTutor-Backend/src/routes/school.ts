@@ -144,17 +144,23 @@ router.get('/teachers', async (req: Request, res: Response) => {
   try {
     const auth = requireSchoolAdmin(req, res)
     if (!auth) return
-    const teachers = await prisma.teacher.findMany({
-      where: { schoolId: auth.schoolId },
-      include: {
-        teacherClasses: {
-          include: {
-            class: { select: { id: true, className: true, gradeLevel: true } },
+    const { page, limit, skip } = parsePaginationFromExpress(req.query as Record<string, unknown>)
+    const [teachers, total] = await Promise.all([
+      prisma.teacher.findMany({
+        where: { schoolId: auth.schoolId },
+        include: {
+          teacherClasses: {
+            include: {
+              class: { select: { id: true, className: true, gradeLevel: true } },
+            },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip,
+      }),
+      prisma.teacher.count({ where: { schoolId: auth.schoolId } }),
+    ])
     const formattedTeachers = teachers.map((teacher) => ({
       id: teacher.id,
       name: teacher.name,
@@ -167,7 +173,8 @@ router.get('/teachers', async (req: Request, res: Response) => {
       status: 'ACTIVE',
       createdAt: teacher.createdAt.toISOString(),
     }))
-    res.json({ success: true, teachers: formattedTeachers })
+    const result = createPaginationResponse(formattedTeachers, total, page, limit)
+    res.json({ success: true, teachers: result.data, pagination: result.pagination })
   } catch (error) {
     sendSanitizedError(res, error, 'school/teachers')
   }

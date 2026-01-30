@@ -2,19 +2,24 @@ import request from 'supertest'
 import { app } from '@/app'
 import { generateToken } from '@/lib/auth'
 
-const mockFindMany = jest.fn()
-const mockCount = jest.fn()
+const mockStudentFindMany = jest.fn()
+const mockStudentCount = jest.fn()
+const mockTeacherFindMany = jest.fn()
+const mockTeacherCount = jest.fn()
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     school: { findFirst: jest.fn(), findUnique: jest.fn() },
     student: {
-      findMany: (...args: unknown[]) => mockFindMany(...args),
+      findMany: (...args: unknown[]) => mockStudentFindMany(...args),
       findFirst: jest.fn(),
       create: jest.fn(),
-      count: (...args: unknown[]) => mockCount(...args),
+      count: (...args: unknown[]) => mockStudentCount(...args),
     },
-    teacher: { findMany: jest.fn() },
+    teacher: {
+      findMany: (...args: unknown[]) => mockTeacherFindMany(...args),
+      count: (...args: unknown[]) => mockTeacherCount(...args),
+    },
     class: { findMany: jest.fn() },
     subject: { findMany: jest.fn() },
     parent: { findMany: jest.fn() },
@@ -31,6 +36,24 @@ jest.mock('@/lib/rate-limit', () => ({
 describe('School routes', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+  })
+
+  describe('POST /api/school/login (validation)', () => {
+    it('returns 400 when body is invalid (missing email)', async () => {
+      const res = await request(app)
+        .post('/api/school/login')
+        .send({ password: 'pass' })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBeDefined()
+    })
+
+    it('returns 400 when email format is invalid', async () => {
+      const res = await request(app)
+        .post('/api/school/login')
+        .send({ email: 'not-an-email', password: 'pass' })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toMatch(/email|Invalid/i)
+    })
   })
 
   describe('GET /api/school/teachers (no auth)', () => {
@@ -50,8 +73,8 @@ describe('School routes', () => {
 
   describe('GET /api/school/students (with auth)', () => {
     it('returns 200 with students and pagination when token is valid', async () => {
-      mockFindMany.mockResolvedValue([])
-      mockCount.mockResolvedValue(0)
+      mockStudentFindMany.mockResolvedValue([])
+      mockStudentCount.mockResolvedValue(0)
       const token = generateToken({
         schoolId: 'school-1',
         email: 'admin@school.com',
@@ -63,6 +86,32 @@ describe('School routes', () => {
       expect(res.status).toBe(200)
       expect(res.body.success).toBe(true)
       expect(res.body.students).toEqual([])
+      expect(res.body.pagination).toMatchObject({
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrev: false,
+      })
+    })
+  })
+
+  describe('GET /api/school/teachers (with auth)', () => {
+    it('returns 200 with teachers and pagination when token is valid', async () => {
+      mockTeacherFindMany.mockResolvedValue([])
+      mockTeacherCount.mockResolvedValue(0)
+      const token = generateToken({
+        schoolId: 'school-1',
+        email: 'admin@school.com',
+        role: 'SCHOOL_ADMIN',
+      })
+      const res = await request(app)
+        .get('/api/school/teachers')
+        .set('Authorization', `Bearer ${token}`)
+      expect(res.status).toBe(200)
+      expect(res.body.success).toBe(true)
+      expect(res.body.teachers).toEqual([])
       expect(res.body.pagination).toMatchObject({
         page: 1,
         limit: 20,

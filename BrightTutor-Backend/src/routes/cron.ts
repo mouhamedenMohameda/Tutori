@@ -5,7 +5,7 @@ import { Router, Request, Response } from 'express'
 import { prisma } from '@/lib/prisma'
 import { sendDailyReminderNotification } from '@/lib/push-notifications'
 import { sendInactiveReminderNotification } from '@/lib/push-notifications'
-import { sendSanitizedError } from '@/lib/security/error-sanitizer'
+import { sendSanitizedError, sendError } from '@/lib/security/error-sanitizer'
 
 const router = Router()
 const CRON_SECRET = process.env.CRON_SECRET || 'your-cron-secret-change-in-production'
@@ -13,7 +13,7 @@ const CRON_SECRET = process.env.CRON_SECRET || 'your-cron-secret-change-in-produ
 function requireCronSecret(req: Request, res: Response): boolean {
   const authHeader = req.headers.authorization
   if (!authHeader || authHeader !== `Bearer ${CRON_SECRET}`) {
-    res.status(401).json({ error: 'Unauthorized' })
+    sendError(res, 401, 'Unauthorized', 'AUTH_REQUIRED')
     return false
   }
   return true

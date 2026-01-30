@@ -242,32 +242,45 @@ router.post('/schools/cleanup', async (req: Request, res: Response) => {
   }
 })
 
+async function handleSchoolsUpdateStatus(req: Request, res: Response) {
+  const body = req.body || {}
+  const { schoolId, status } = body
+  if (!schoolId || !status) return res.status(400).json({ error: 'School ID and status are required' })
+  const valid = ['PENDING', 'ACTIVE', 'REJECTED', 'SUSPENDED', 'EXPIRED', 'DELETED']
+  if (!valid.includes(status)) return res.status(400).json({ error: 'Invalid status' })
+  if (status === 'DELETED') {
+    const school = await prisma.school.findUnique({ where: { id: schoolId } })
+    if (!school) return res.status(404).json({ error: 'School not found' })
+    await prisma.school.delete({ where: { id: schoolId } })
+    return res.json({ success: true, message: 'School deleted successfully', school: { id: school.id, schoolName: school.schoolName, applicationStatus: 'DELETED' } })
+  }
+  const updated = await prisma.school.update({
+    where: { id: schoolId },
+    data: {
+      applicationStatus: status,
+      approvedDate: status === 'ACTIVE' ? new Date() : undefined,
+      approvedBy: status === 'ACTIVE' ? 'platform-admin' : undefined,
+      subscriptionStatus: status === 'ACTIVE' ? 'ACTIVE' : status,
+      subscriptionStart: status === 'ACTIVE' ? new Date() : undefined,
+      subscriptionEnd: status === 'ACTIVE' ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) : undefined,
+    },
+  })
+  res.json({ success: true, message: `School ${status.toLowerCase()} successfully`, school: { id: updated.id, schoolName: updated.schoolName, applicationStatus: updated.applicationStatus, subscriptionStatus: updated.subscriptionStatus } })
+}
+
 // PUT /platform-admin/schools/update-status
 router.put('/schools/update-status', async (req: Request, res: Response) => {
   try {
-    const body = req.body || {}
-    const { schoolId, status } = body
-    if (!schoolId || !status) return res.status(400).json({ error: 'School ID and status are required' })
-    const valid = ['PENDING', 'ACTIVE', 'REJECTED', 'SUSPENDED', 'EXPIRED', 'DELETED']
-    if (!valid.includes(status)) return res.status(400).json({ error: 'Invalid status' })
-    if (status === 'DELETED') {
-      const school = await prisma.school.findUnique({ where: { id: schoolId } })
-      if (!school) return res.status(404).json({ error: 'School not found' })
-      await prisma.school.delete({ where: { id: schoolId } })
-      return res.json({ success: true, message: 'School deleted successfully', school: { id: school.id, schoolName: school.schoolName, applicationStatus: 'DELETED' } })
-    }
-    const updated = await prisma.school.update({
-      where: { id: schoolId },
-      data: {
-        applicationStatus: status,
-        approvedDate: status === 'ACTIVE' ? new Date() : undefined,
-        approvedBy: status === 'ACTIVE' ? 'platform-admin' : undefined,
-        subscriptionStatus: status === 'ACTIVE' ? 'ACTIVE' : status,
-        subscriptionStart: status === 'ACTIVE' ? new Date() : undefined,
-        subscriptionEnd: status === 'ACTIVE' ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) : undefined,
-      },
-    })
-    res.json({ success: true, message: `School ${status.toLowerCase()} successfully`, school: { id: updated.id, schoolName: updated.schoolName, applicationStatus: updated.applicationStatus, subscriptionStatus: updated.subscriptionStatus } })
+    await handleSchoolsUpdateStatus(req, res)
+  } catch (error) {
+    sendSanitizedError(res, error, 'platform-admin/schools/update-status')
+  }
+})
+
+// POST /platform-admin/schools/update-status (alias for mobile app)
+router.post('/schools/update-status', async (req: Request, res: Response) => {
+  try {
+    await handleSchoolsUpdateStatus(req, res)
   } catch (error) {
     sendSanitizedError(res, error, 'platform-admin/schools/update-status')
   }

@@ -21,7 +21,8 @@ describe('Teacher routes (protected)', () => {
     it('returns 401 when no Authorization header', async () => {
       const res = await request(app).get('/api/teacher/classes')
       expect(res.status).toBe(401)
-      expect(res.body.error).toMatch(/Unauthorized|Authorization/i)
+      expect(res.body.error).toMatch(/Authorization/i)
+      expect(res.body.code).toBe('AUTH_REQUIRED')
     })
 
     it('returns 401 when Bearer token is invalid', async () => {

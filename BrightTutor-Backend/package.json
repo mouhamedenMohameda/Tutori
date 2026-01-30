@@ -6,6 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:fullstack": "bash scripts/run-fullstack.sh",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "NODE_ENV=test jest --runInBand",
@@ -29,7 +30,7 @@
     "jose": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mathjs": "^15.1.0",
-    "multer": "^1.4.5-lts.1",
+    "multer": "^2.0.0",
     "openai": "^4.20.0",
     "pdf-parse": "^1.1.1",
     "uuid": "^9.0.1",
@@ -55,5 +56,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "overrides": {
+    "glob": "^10.4.2"
   }
 }

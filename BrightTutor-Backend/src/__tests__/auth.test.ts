@@ -58,7 +58,20 @@ describe('Auth routes', () => {
         .post('/api/auth/register')
         .send({ schoolName: 'Test School' })
       expect(res.status).toBe(400)
-      expect(res.body.error).toMatch(/required/i)
+      expect(res.body.error).toMatch(/required|Required/i)
+    })
+
+    it('returns 400 when email format is invalid', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({
+          schoolName: 'Test School',
+          adminName: 'Admin',
+          adminEmail: 'not-an-email',
+          password: 'password123',
+        })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toMatch(/email|Invalid/i)
     })
 
     it('returns 400 when password is too short', async () => {
