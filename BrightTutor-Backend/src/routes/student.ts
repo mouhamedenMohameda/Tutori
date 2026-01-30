@@ -114,7 +114,7 @@ router.post('/login', async (req: Request, res: Response) => {
       }
       token = generateToken({
         studentId: student.id,
-        username: student.username,
+        username: student.username ?? undefined,
         schoolId: student.schoolId,
         role: 'STUDENT',
       })

@@ -171,8 +171,7 @@ async function getRedisClient(): Promise<any> {
 
   redisClientPromise = (async () => {
     try {
-      // Dynamic import to avoid requiring Redis in development
-      const Redis = (await import('ioredis')).default;
+      const Redis = (await import('ioredis')).default as unknown as new (url: string, opts?: object) => import('ioredis').Redis;
       redisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
         maxRetriesPerRequest: 3,
         retryStrategy: (times: number) => {

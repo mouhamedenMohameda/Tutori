@@ -1,39 +1,9 @@
-// Universal Authentication Utilities
-// Replaces localStorage with secure cookies across all pages
+// Universal Authentication Utilities (backend-safe: no DOM)
+// On server, cookie/window APIs are stubbed (no document/window in Node).
 
-// Cookie management
-const getCookieValue = (name: string): string | null => {
-  if (typeof document === 'undefined') return null
-  
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) {
-    const cookieValue = parts.pop()?.split(';').shift()
-    return cookieValue ? decodeURIComponent(cookieValue) : null
-  }
-  return null
-}
-
-const setCookieValue = (name: string, value: string, days: number = 7) => {
-  if (typeof document === 'undefined') return
-  
-  const expires = new Date()
-  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000))
-  
-  // Only use 'secure' flag in HTTPS (production), not in HTTP (localhost development)
-  // Cookies with 'secure' flag don't work on localhost HTTP
-  const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:'
-  const secureFlag = isHttps ? 'secure;' : ''
-  
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; ${secureFlag} samesite=lax`
-  console.log(`🍪 Cookie set: ${name} (https: ${isHttps}, secure: ${isHttps})`)
-}
-
-const removeCookieValue = (name: string) => {
-  if (typeof document === 'undefined') return
-  
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
-}
+const getCookieValue = (_name: string): string | null => null
+const setCookieValue = (_name: string, _value: string, _days?: number) => {}
+const removeCookieValue = (_name: string) => {}
 
 // Universal token getter - works for all user types
 export const getAuthToken = (): string | null => {
@@ -152,19 +122,9 @@ export const checkAuth = (requiredRole?: 'SCHOOL_ADMIN' | 'TEACHER' | 'STUDENT' 
   return true
 }
 
-// Redirect to login if not authenticated
+// Redirect to login if not authenticated (backend: no redirect, just return false)
 export const requireAuth = (requiredRole?: 'SCHOOL_ADMIN' | 'TEACHER' | 'STUDENT' | 'PARENT') => {
-  if (!checkAuth(requiredRole)) {
-    const loginUrls = {
-      'SCHOOL_ADMIN': '/school/login',
-      'TEACHER': '/auth/login',
-      'STUDENT': '/auth/login',
-      'PARENT': '/auth/login'
-    }
-    
-    window.location.href = requiredRole ? loginUrls[requiredRole] : '/auth/login'
-    return false
-  }
+  if (!checkAuth(requiredRole)) return false
   return true
 }
 

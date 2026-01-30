@@ -19,7 +19,7 @@ const router = Router()
 const registrationRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   maxRequests: 3,
-  keyGenerator: (req) => `registration:${req.ip || 'unknown'}:${req.path}`,
+  keyGenerator: (req: unknown) => `registration:${(req as { ip?: string; path?: string }).ip || 'unknown'}:${(req as { path?: string }).path || ''}`,
 })
 
 router.post('/register-simple', async (req: Request, res: Response) => {

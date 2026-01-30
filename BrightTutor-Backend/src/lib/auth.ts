@@ -1,59 +1,19 @@
-// BrightTutor Authentication Utilities
-// JWT token management and password hashing
+// BrightTutor Authentication Utilities (backend: Express)
+// JWT token management and password hashing — no Next.js / DOM
 
-import { NextRequest } from 'next/server'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { JWTPayload, AdminRole } from '@/types'
 import { getJWTSecret } from '@/lib/security/secrets'
 
-// Use secure secret management (no fallbacks in production)
 const getSecret = () => getJWTSecret()
 const JWT_EXPIRES_IN = '7d'
 const SALT_ROUNDS = 12
 
-// ===================================
-// COOKIE UTILITIES (Replace localStorage)
-// ===================================
-
-export const getCookieValue = (name: string): string | null => {
-  if (typeof document === 'undefined') return null
-  
-  const value = `; ${document.cookie}`
-  const parts = value.split(`; ${name}=`)
-  if (parts.length === 2) {
-    const cookieValue = parts.pop()?.split(';').shift()
-    return cookieValue ? decodeURIComponent(cookieValue) : null
-  }
-  return null
-}
-
-export const setCookie = (name: string, value: string, days: number = 7) => {
-  if (typeof document === 'undefined') return
-  
-  const expires = new Date()
-  expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000))
-  
-  // ✅ FIX: Use samesite=lax instead of strict for production compatibility
-  // samesite=lax allows cookies during top-level navigations and redirects (required for AWS Amplify)
-  // Still prevents CSRF attacks, but more permissive than strict
-  // secure flag: true if HTTPS, false for HTTP (browsers will enforce secure on HTTPS domains)
-  const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:'
-  const cookieParts = [
-    `${name}=${encodeURIComponent(value)}`,
-    `expires=${expires.toUTCString()}`,
-    'path=/',
-    ...(isSecure ? ['secure'] : []),
-    'samesite=lax'
-  ]
-  document.cookie = cookieParts.join('; ')
-}
-
-export const removeCookie = (name: string) => {
-  if (typeof document === 'undefined') return
-  
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
-}
+// Backend: no document/cookies; these are no-ops or header-based only
+export const getCookieValue = (_name: string): string | null => null
+export const setCookie = (_name: string, _value: string, _days?: number) => {}
+export const removeCookie = (_name: string) => {}
 
 export const getAuthToken = (): string | null => {
   return getCookieValue('schoolToken') || 
@@ -126,36 +86,26 @@ export const verifyToken = (token: string): JWTPayload | null => {
   }
 }
 
-export const extractUserFromRequest = (request: NextRequest): JWTPayload | null => {
-  // First try Authorization header (for API calls)
+/** Request-like: Express or adapter with headers.get */
+type RequestLike = { headers: { get(name: string): string | null }; cookies?: { get?(name: string): { value: string } | undefined } }
+
+export const extractUserFromRequest = (request: RequestLike): JWTPayload | null => {
   const authHeader = request.headers.get('Authorization')
   if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.substring(7)
-    return verifyToken(token)
+    return verifyToken(authHeader.substring(7))
   }
-  
-  // Then try cookies (for browser requests)
-  const token = request.cookies.get('authToken')?.value ||
-               request.cookies.get('schoolToken')?.value ||
-               request.cookies.get('teacherToken')?.value ||
-               request.cookies.get('studentToken')?.value ||
-               request.cookies.get('parentToken')?.value
-               
-  if (token) {
-    return verifyToken(token)
-  }
-  
+  const token = request.cookies?.get?.('authToken')?.value ||
+    request.cookies?.get?.('schoolToken')?.value ||
+    request.cookies?.get?.('teacherToken')?.value ||
+    request.cookies?.get?.('studentToken')?.value ||
+    request.cookies?.get?.('parentToken')?.value
+  if (token) return verifyToken(token)
   return null
 }
 
-export const isAuthenticated = (request: NextRequest): boolean => {
-  return extractUserFromRequest(request) !== null
-}
-
-export const hasRole = (request: NextRequest, requiredRole: AdminRole | 'PLATFORM_ADMIN'): boolean => {
-  const user = extractUserFromRequest(request)
-  return user?.role === requiredRole
-}
+export const isAuthenticated = (request: RequestLike): boolean => extractUserFromRequest(request) !== null
+export const hasRole = (request: RequestLike, requiredRole: AdminRole | 'PLATFORM_ADMIN'): boolean =>
+  extractUserFromRequest(request)?.role === requiredRole
 
 // ===================================
 // API UTILITIES (Database Calls)
@@ -228,17 +178,10 @@ export const getSessionFromToken = (token: string) => {
   }
 }
 
-export const requireAuth = (request: NextRequest, allowedRoles?: AdminRole[]): JWTPayload => {
+export const requireAuth = (request: RequestLike, allowedRoles?: AdminRole[]): JWTPayload => {
   const user = extractUserFromRequest(request)
-  
-  if (!user) {
-    throw new Error('Authentication required')
-  }
-  
-  if (allowedRoles && !allowedRoles.includes(user.role as AdminRole)) {
-    throw new Error('Insufficient permissions')
-  }
-  
+  if (!user) throw new Error('Authentication required')
+  if (allowedRoles && user.role && !allowedRoles.includes(user.role as AdminRole)) throw new Error('Insufficient permissions')
   return user
 }
 

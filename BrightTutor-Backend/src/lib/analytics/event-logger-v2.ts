@@ -115,9 +115,9 @@ export class EventLoggerV2 {
       }));
       
       // Utiliser createMany pour insertion batch (plus efficace)
-      await prisma.analyticsEventV2.createMany({
+      await (prisma as any).analyticsEventV2?.createMany({
         data: records,
-        skipDuplicates: true // Ignorer les doublons (eventId unique)
+        skipDuplicates: true
       });
       
       console.log(`✅ Stored ${events.length} events v2.0 in database`);

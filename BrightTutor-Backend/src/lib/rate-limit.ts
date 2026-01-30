@@ -8,10 +8,13 @@ interface RateLimitEntry {
 
 const rateLimitStore = new Map<string, RateLimitEntry>()
 
+/** Any request-like (Web Request, Express Request, or adapter) for rate limiting */
+export type RateLimitRequest = unknown
+
 export interface RateLimitConfig {
-  windowMs: number // Time window in milliseconds
-  maxRequests: number // Maximum requests per window
-  keyGenerator?: (request: Request) => string // Custom key generator
+  windowMs: number
+  maxRequests: number
+  keyGenerator?: (request: RateLimitRequest) => string
 }
 
 export interface RateLimitResult {
@@ -42,7 +45,7 @@ async function getRedisClient(): Promise<any> {
 
   redisClientPromise = (async () => {
     try {
-      const Redis = (await import('ioredis')).default;
+      const Redis = (await import('ioredis')).default as unknown as new (url: string, opts?: object) => import('ioredis').Redis;
       redisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
         maxRetriesPerRequest: 3,
         retryStrategy: (times: number) => {
@@ -165,7 +168,7 @@ function rateLimitMemory(
  * Returns async function for Redis compatibility
  */
 export function createRateLimiter(config: RateLimitConfig) {
-  return async function rateLimit(request: Request): Promise<RateLimitResult> {
+  return async function rateLimit(request: RateLimitRequest): Promise<RateLimitResult> {
     const key = config.keyGenerator ? config.keyGenerator(request) : 'default';
 
     // Use Redis if available, otherwise fallback to memory
@@ -181,64 +184,56 @@ export function createRateLimiter(config: RateLimitConfig) {
 export const rateLimitConfigs = {
   // Authentication endpoints - strict limits
   auth: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5, // 5 login attempts per 15 minutes
-    keyGenerator: (request: Request) => {
-      const url = new URL(request.url);
-      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-                 request.headers.get('x-real-ip') || 
-                 'unknown';
-      return `auth:${ip}:${url.pathname}`;
+    windowMs: 15 * 60 * 1000,
+    maxRequests: 5,
+    keyGenerator: (request: RateLimitRequest) => {
+      const r = request as { url?: string; headers?: { get(n: string): string | null }; ip?: string; path?: string; originalUrl?: string };
+      const urlStr = r.url ?? r.originalUrl ?? '';
+      const path = urlStr ? new URL(urlStr, 'http://x').pathname : (r.path ?? '');
+      const ip = r.headers?.get?.('x-forwarded-for')?.split(',')[0]?.trim() ?? r.headers?.get?.('x-real-ip') ?? r.ip ?? 'unknown';
+      return `auth:${ip}:${path}`;
     }
   },
   
-  // AI generation endpoints - moderate limits (cost control)
   aiGeneration: {
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 20, // 20 AI requests per hour per user
-    keyGenerator: (request: Request) => {
-      const url = new URL(request.url);
-      const authHeader = request.headers.get('authorization');
-      const userId = authHeader ? 'user' : 'anonymous';
-      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-      return `ai:${userId}:${ip}:${url.pathname}`;
+    windowMs: 60 * 60 * 1000,
+    maxRequests: 20,
+    keyGenerator: (request: RateLimitRequest) => {
+      const r = request as RateLimitRequest & { url?: string; originalUrl?: string; path?: string };
+      const path = r.url ? new URL(r.url, 'http://x').pathname : (r.originalUrl ?? r.path ?? '');
+      const authHeader = (r as { headers?: { get(n: string): string | null } }).headers?.get?.('authorization');
+      const ip = (r as { headers?: { get(n: string): string | null }; ip?: string }).headers?.get?.('x-forwarded-for')?.split(',')[0]?.trim() ?? (r as { ip?: string }).ip ?? 'unknown';
+      return `ai:${authHeader ? 'user' : 'anonymous'}:${ip}:${path}`;
     }
   },
-
-  // BAC Chat endpoints - moderate limits (AI cost control)
   bacChat: {
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 30, // 30 chat messages per hour per student
-    keyGenerator: (request: Request) => {
-      const url = new URL(request.url);
-      const authHeader = request.headers.get('authorization');
-      const studentId = authHeader ? 'student' : 'anonymous';
-      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-      return `bac:chat:${studentId}:${ip}`;
+    windowMs: 60 * 60 * 1000,
+    maxRequests: 30,
+    keyGenerator: (request: RateLimitRequest) => {
+      const r = request as RateLimitRequest & { headers?: { get(n: string): string | null }; ip?: string };
+      const authHeader = r.headers?.get?.('authorization');
+      const ip = r.headers?.get?.('x-forwarded-for')?.split(',')[0]?.trim() ?? r.ip ?? 'unknown';
+      return `bac:chat:${authHeader ? 'student' : 'anonymous'}:${ip}`;
     }
   },
-  
-  // General API endpoints - generous limits
   general: {
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 1000, // 1000 requests per hour
-    keyGenerator: (request: Request) => {
-      const url = new URL(request.url);
-      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-      return `general:${ip}:${url.pathname}`;
+    windowMs: 60 * 60 * 1000,
+    maxRequests: 1000,
+    keyGenerator: (request: RateLimitRequest) => {
+      const r = request as RateLimitRequest & { url?: string; originalUrl?: string; path?: string; headers?: { get(n: string): string | null }; ip?: string };
+      const path = r.url ? new URL(r.url, 'http://x').pathname : (r.originalUrl ?? r.path ?? '');
+      const ip = r.headers?.get?.('x-forwarded-for')?.split(',')[0]?.trim() ?? r.ip ?? 'unknown';
+      return `general:${ip}:${path}`;
     }
   },
-
-  // Dashboard/Profile endpoints - moderate limits
   dashboard: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 60, // 60 requests per minute (1 per second)
-    keyGenerator: (request: Request) => {
-      const url = new URL(request.url);
-      const authHeader = request.headers.get('authorization');
-      const userId = authHeader ? 'user' : 'anonymous';
-      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-      return `dashboard:${userId}:${ip}`;
+    windowMs: 60 * 1000,
+    maxRequests: 60,
+    keyGenerator: (request: RateLimitRequest) => {
+      const r = request as RateLimitRequest & { headers?: { get(n: string): string | null }; ip?: string };
+      const authHeader = r.headers?.get?.('authorization');
+      const ip = r.headers?.get?.('x-forwarded-for')?.split(',')[0]?.trim() ?? r.ip ?? 'unknown';
+      return `dashboard:${authHeader ? 'user' : 'anonymous'}:${ip}`;
     }
   }
 }

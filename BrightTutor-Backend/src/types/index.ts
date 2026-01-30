@@ -19,3 +19,15 @@ export interface ApiResponse<T = unknown> {
   error?: string
   message?: string
 }
+
+/** JWT payload used by auth (backend: Express; no NextRequest) */
+export interface JWTPayload {
+  userId?: string
+  schoolId?: string
+  role?: string
+  email?: string
+  studentId?: string
+  username?: string
+  parentId?: string
+  teacherId?: string
+}
