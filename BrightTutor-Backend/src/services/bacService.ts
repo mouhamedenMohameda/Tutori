@@ -1,7 +1,10 @@
 /**
  * BAC API: progress, part-progress, complete, tokens, stored exercises, course rate, chat, dev tools
  */
-import { prisma } from '@/lib/prisma'
+import { getDataSource } from '@/config/data-source'
+import { BacPartCompletion, StoredBacExercise, StoredBacExercisePart } from '@/entities'
+import { v4 as uuidv4 } from 'uuid'
+import { Like } from 'typeorm'
 import {
   getBacProgress,
   getAllBacProgress,
@@ -186,9 +189,10 @@ export async function deleteStoredExercise(
   exerciseId: string
 ): Promise<{ success: true } | { success: false; code: string }> {
   try {
-    await prisma.storedBacExercise.delete({
-      where: { chapterId_exerciseId: { chapterId, exerciseId } },
-    })
+    const ds = await getDataSource()
+    const repo = ds.getRepository(StoredBacExercise)
+    const existing = await repo.findOne({ where: { chapterId, exerciseId } })
+    if (existing) await repo.remove(existing)
     return { success: true }
   } catch (error: unknown) {
     const err = error as { code?: string }
@@ -205,23 +209,16 @@ export async function getRandomStoredExercise(
   totalAvailable: number
   message?: string
 }> {
-  const list = await prisma.storedBacExercise.findMany({
+  const ds = await getDataSource()
+  const list = await ds.getRepository(StoredBacExercise).find({
     where: { chapterId, isActive: true },
-    select: {
-      id: true,
-      exerciseId: true,
-      title: true,
-      description: true,
-      subject: true,
-      difficulty: true,
-      partSequence: true,
-    },
-    orderBy: { exerciseId: 'asc' },
+    select: ['id', 'exerciseId', 'title', 'description', 'subject', 'difficulty', 'partSequence'],
+    order: { exerciseId: 'ASC' },
   })
   let filtered = list
   if (baseExerciseId) {
     filtered = list.filter(
-      (ex) =>
+      (ex: StoredBacExercise) =>
         ex.exerciseId === baseExerciseId || ex.exerciseId.startsWith(baseExerciseId + '-')
     )
   }
@@ -300,10 +297,11 @@ export async function processChat(body: {
   | { success: false; status: number; error: string }
 > {
   const { studentId, exerciseId, partId, message, conversationHistory = [], partQuestion: bodyPartQuestion } = body
+  const ds = await getDataSource()
   const [exercise, partCompletion, partProgress] = await Promise.all([
     getOrCreateBacExercise(studentId, exerciseId),
-    prisma.bacPartCompletion.findUnique({
-      where: { studentId_exerciseId_partId: { studentId, exerciseId, partId } },
+    ds.getRepository(BacPartCompletion).findOne({
+      where: { studentId, exerciseId, partId },
     }),
     getBacPartProgress(studentId, exerciseId, partId),
   ])
@@ -352,11 +350,16 @@ export async function processChat(body: {
       studentId
     ),
     !exercise.completedParts.includes(partId)
-      ? prisma.bacPartCompletion.upsert({
-          where: { studentId_exerciseId_partId: { studentId, exerciseId, partId } },
-          update: { attempts: { increment: 1 } },
-          create: { studentId, exerciseId, partId, attempts: 1, completed: false },
-        }).catch(() => {})
+      ? (async () => {
+          const repo = ds.getRepository(BacPartCompletion)
+          const existing = await repo.findOne({ where: { studentId, exerciseId, partId } })
+          if (existing) {
+            existing.attempts = (existing.attempts || 0) + 1
+            await repo.save(existing)
+          } else {
+            await repo.save(repo.create({ id: uuidv4(), studentId, exerciseId, partId, attempts: 1, completed: false }))
+          }
+        })().catch(() => {})
       : Promise.resolve(),
   ])
   let comprehensionLevel: unknown = null
@@ -423,47 +426,52 @@ export async function saveExerciseDev(body: {
   const baseExerciseId =
     (bodyExerciseId as string)?.replace(/-\d{10,}$/, '').replace(/-gen-\d+$/, '') || `bac-exercise-${chapterId}`
   let newExerciseId = `${baseExerciseId}-${Date.now()}`
-  let existing = await prisma.storedBacExercise.findUnique({
-    where: { chapterId_exerciseId: { chapterId, exerciseId: newExerciseId } },
-  })
+  const ds = await getDataSource()
+  const repo = ds.getRepository(StoredBacExercise)
+  let existing = await repo.findOne({ where: { chapterId, exerciseId: newExerciseId } })
   if (existing) {
     newExerciseId = `${baseExerciseId}-${Date.now()}-${Math.floor(Math.random() * 10000)}`
   }
   const partSequence = getPartSequence(baseExerciseId) || parts.map((p) => p.partId)
-  const stored = await prisma.storedBacExercise.create({
-    data: {
-      chapterId,
-      exerciseId: newExerciseId,
-      title: title || `Exercice ${newExerciseId}`,
-      description: description || '',
-      subject: subject || 'Mathématiques',
-      difficulty: difficulty || 'Moyen',
-      concepts: (concepts || []) as string[],
-      objectives: (objectives || []) as string[],
-      partSequence,
-      enonceComplet: enonceComplet ?? null,
-      generatedBy: 'dev-tool',
-      isActive: true,
-      parts: {
-        create: parts.map((part, index) => ({
-          partId: part.partId,
-          question: part.question || '',
-          type: part.type || 'calcul',
-          difficulty: part.difficulty || difficulty || 'Moyen',
-          validated: part.validated !== undefined ? part.validated : true,
-          orderIndex: index,
-        })),
-      },
-    },
-    include: { parts: true },
+  const stored = repo.create({
+    id: uuidv4(),
+    chapterId,
+    exerciseId: newExerciseId,
+    title: title || `Exercice ${newExerciseId}`,
+    description: description || '',
+    subject: subject || 'Mathématiques',
+    difficulty: difficulty || 'Moyen',
+    concepts: (concepts || []) as string[],
+    objectives: (objectives || []) as string[],
+    partSequence,
+    enonceComplet: enonceComplet ?? null,
+    generatedBy: 'dev-tool',
+    isActive: true,
   })
+  await repo.save(stored)
+  const partRepo = ds.getRepository(StoredBacExercisePart)
+  for (let index = 0; index < parts.length; index++) {
+    const part = parts[index]
+    await partRepo.save(
+      partRepo.create({
+        id: uuidv4(),
+        exerciseId: stored.id,
+        partId: part.partId,
+        question: part.question || '',
+        type: part.type || 'calcul',
+        difficulty: part.difficulty || difficulty || 'Moyen',
+        validated: part.validated !== undefined ? part.validated : true,
+        orderIndex: index,
+      })
+    )
+  }
   return {
     success: true,
     exercise: {
       id: stored.id,
       exerciseId: stored.exerciseId,
       chapterId: stored.chapterId,
-      partsCount: (stored as { parts: unknown[] }).parts.length,
+      partsCount: parts.length,
     },
   }
 }
@@ -473,11 +481,12 @@ export async function checkExerciseExists(body: {
   baseExerciseId: string
 }): Promise<{ exists: boolean; existingExercises: string[] }> {
   const { chapterId, baseExerciseId } = body
-  const list = await prisma.storedBacExercise.findMany({
-    where: { chapterId, exerciseId: { startsWith: baseExerciseId }, isActive: true },
-    select: { exerciseId: true },
+  const ds = await getDataSource()
+  const list = await ds.getRepository(StoredBacExercise).find({
+    where: { chapterId, exerciseId: Like(`${baseExerciseId}%`), isActive: true },
+    select: ['exerciseId'],
   })
-  return { exists: list.length > 0, existingExercises: list.map((e) => e.exerciseId) }
+  return { exists: list.length > 0, existingExercises: list.map((e: StoredBacExercise) => e.exerciseId) }
 }
 
 export async function regenerateQuestion(body: {

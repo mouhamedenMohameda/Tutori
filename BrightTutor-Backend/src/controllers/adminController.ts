@@ -247,7 +247,8 @@ export async function postStudentsHandler(req: Request, res: Response): Promise<
         res.status(400).json({ error: pv.error ?? 'Invalid parent ID' })
         return
       }
-      const parentExists = await require('@/lib/prisma').prisma.parent.findFirst({
+      const ds = await (await import('@/config/data-source')).getDataSource()
+      const parentExists = await ds.getRepository((await import('@/entities')).Parent).findOne({
         where: { id: parentId, schoolId: actualSchoolId },
       })
       if (!parentExists) {

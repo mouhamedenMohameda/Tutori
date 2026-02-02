@@ -1,6 +1,6 @@
-import { In, LessThan } from 'typeorm'
+import { In, LessThan, MoreThanOrEqual } from 'typeorm'
 import { AppDataSource } from '@/config/data-source'
-import { StudentPushToken, Student } from '@/entities'
+import { StudentPushToken, Student, QuizSession, AIConversation } from '@/entities'
 import { sendDailyReminderNotification } from '@/lib/push-notifications'
 import { sendInactiveReminderNotification } from '@/lib/push-notifications'
 
@@ -24,15 +24,23 @@ export async function runDailyNotifications() {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const now = new Date()
+  const todayStart = new Date(today.getTime())
+  const activeByQuiz = await AppDataSource.getRepository(QuizSession).find({
+    where: { startTime: MoreThanOrEqual(todayStart) },
+    select: ['studentId'],
+  })
+  const activeByConv = await AppDataSource.getRepository(AIConversation).find({
+    where: { timestamp: MoreThanOrEqual(todayStart) },
+    select: ['studentId'],
+  })
+  const activeTodayIds = new Set([
+    ...activeByQuiz.map((x) => x.studentId),
+    ...activeByConv.map((x) => x.studentId),
+  ])
   const allStudentsWithTokens = await studentRepo.find({
     where: { isActive: true, id: In(studentIdsWithTokens) },
-    relations: ['pushTokens', 'quizSessions', 'conversations'],
   })
-  const inactiveStudents = allStudentsWithTokens.filter((s) => {
-    const hasQuiz = (s.quizSessions?.length || 0) > 0
-    const hasChat = (s.conversations?.length || 0) > 0
-    return !hasQuiz && !hasChat
-  })
+  const inactiveStudents = allStudentsWithTokens.filter((s) => !activeTodayIds.has(s.id))
   if (inactiveStudents.length === 0) {
     return {
       message: 'All students with push tokens were active today - no notifications needed',

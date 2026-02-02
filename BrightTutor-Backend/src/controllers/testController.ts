@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken'
 import { getJWTSecret } from '@/lib/security/secrets'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
 import { getPushTestInfo, sendPushTest } from '@/services/testService'
-import { prisma } from '@/lib/prisma'
+import { getDataSource } from '@/config/data-source'
+import { Student } from '@/entities'
 
 const JWT_SECRET = () => getJWTSecret()
 
@@ -59,10 +60,12 @@ export async function pushNotificationPostHandler(
       })
       return
     }
-    const student = await prisma.student.findUnique({
+    const ds = await getDataSource()
+    const student = await ds.getRepository(Student).findOne({
       where: { id: targetStudentId },
-      include: { pushTokens: { where: { isActive: true } } },
+      relations: ['pushTokens'],
     })
+    const activePushTokens = student?.pushTokens ? (student.pushTokens as { isActive: boolean }[]).filter((t: { isActive: boolean }) => t.isActive) : []
     if (!student) {
       res.status(404).json({ error: 'Student not found' })
       return
@@ -82,11 +85,11 @@ export async function pushNotificationPostHandler(
       message: 'Test notification sent',
       stats: {
         studentName: student.studentName,
-        activeTokens: student.pushTokens.length,
+        activeTokens: activePushTokens.length,
         sent: successResult.sent,
         errors: successResult.errors,
       },
-      tokens: student.pushTokens.map((t) => ({
+      tokens: activePushTokens.map((t: { platform?: string; deviceId?: string; isActive?: boolean }) => ({
         platform: t.platform,
         deviceId: t.deviceId,
         isActive: t.isActive,
