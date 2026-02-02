@@ -3,7 +3,9 @@
  * Handles sending push notifications via Expo Push Notification Service
  */
 
-import { prisma } from './prisma'
+import { getDataSource } from '@/config/data-source'
+import { StudentPushToken, Student } from '@/entities'
+import { Not, In } from 'typeorm'
 
 const EXPO_PUSH_API_URL = 'https://exp.host/--/api/v2/push/send'
 
@@ -90,12 +92,9 @@ export async function sendNotificationToStudent(
   data?: any
 ): Promise<{ success: boolean; sent: number; errors: number }> {
   try {
-    // Get all active push tokens for this student
-    const tokens = await prisma.studentPushToken.findMany({
-      where: {
-        studentId,
-        isActive: true,
-      },
+    const ds = await getDataSource()
+    const tokens = await ds.getRepository(StudentPushToken).find({
+      where: { studentId, isActive: true },
     })
 
     if (tokens.length === 0) {
@@ -135,16 +134,12 @@ export async function sendNotificationToStudent(
         errors++
         // If token is invalid, mark it as inactive
         if (result.error?.includes('Invalid') || result.error?.includes('DeviceNotRegistered')) {
-          await prisma.studentPushToken.update({
-            where: { id: token.id },
-            data: { isActive: false },
-          })
+          await ds.getRepository(StudentPushToken).update(token.id, { isActive: false })
         }
       }
     }
-
     return { success: sent > 0, sent, errors }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error sending notification to student:', error)
     return { success: false, sent: 0, errors: 1 }
   }
@@ -174,54 +169,33 @@ export async function sendDailyReminderNotification(
   const dayOfWeek = new Date().getDay()
   const message = messages[dayOfWeek % messages.length]
 
-  // Get all active push tokens for this student
-  const tokens = await prisma.studentPushToken.findMany({
-    where: {
-      studentId,
-      isActive: true,
-    },
-  })
-
+  const ds = await getDataSource()
+  const tokens = await ds.getRepository(StudentPushToken).find({ where: { studentId, isActive: true } })
   if (tokens.length === 0) {
     console.log(`⚠️ No active push tokens found for student ${studentId}`)
     return { success: false, sent: 0, errors: 0 }
   }
-
   let sent = 0
   let errors = 0
-
-  // Send notification to all devices with sound like WhatsApp
-  // Use 'reminders' channel for Android
   for (const token of tokens) {
     const result = await sendExpoPushNotification({
       to: token.expoPushToken,
-      sound: 'default', // Default system sound (like WhatsApp)
+      sound: 'default',
       title: 'Tutori Daily Reminder',
       body: message,
-      data: {
-        type: 'daily_reminder',
-        studentId,
-        timestamp: new Date().toISOString(),
-      },
-      priority: 'high', // High priority ensures delivery even when app is closed
-      badge: 1, // Show badge count on app icon
-      channelId: 'reminders', // Android notification channel for reminders
+      data: { type: 'daily_reminder', studentId, timestamp: new Date().toISOString() },
+      priority: 'high',
+      badge: 1,
+      channelId: 'reminders',
     })
-
-    if (result.success) {
-      sent++
-    } else {
+    if (result.success) sent++
+    else {
       errors++
-      // If token is invalid, mark it as inactive
       if (result.error?.includes('Invalid') || result.error?.includes('DeviceNotRegistered')) {
-        await prisma.studentPushToken.update({
-          where: { id: token.id },
-          data: { isActive: false },
-        })
+        await ds.getRepository(StudentPushToken).update(token.id, { isActive: false })
       }
     }
   }
-
   return { success: sent > 0, sent, errors }
 }
 
@@ -237,54 +211,33 @@ export async function sendInactiveReminderNotification(
   // Duolingo-style message in Moroccan Arabic (Darija) written in Latin script
   const message = `${studentName} Frr 2nte me4alk.. Yak magab4tk l7m 😄?`
 
-  // Get all active push tokens for this student
-  const tokens = await prisma.studentPushToken.findMany({
-    where: {
-      studentId,
-      isActive: true,
-    },
-  })
-
+  const ds = await getDataSource()
+  const tokens = await ds.getRepository(StudentPushToken).find({ where: { studentId, isActive: true } })
   if (tokens.length === 0) {
     console.log(`⚠️ No active push tokens found for student ${studentId}`)
     return { success: false, sent: 0, errors: 0 }
   }
-
   let sent = 0
   let errors = 0
-
-  // Send notification to all devices with sound like WhatsApp
-  // Use 'reminders' channel for Android
   for (const token of tokens) {
     const result = await sendExpoPushNotification({
       to: token.expoPushToken,
-      sound: 'default', // Default system sound (like WhatsApp)
+      sound: 'default',
       title: 'Tutori',
       body: message,
-      data: {
-        type: 'inactive_reminder',
-        studentId,
-        timestamp: new Date().toISOString(),
-      },
-      priority: 'high', // High priority ensures delivery even when app is closed
-      badge: 1, // Show badge count on app icon
-      channelId: 'reminders', // Android notification channel for reminders
+      data: { type: 'inactive_reminder', studentId, timestamp: new Date().toISOString() },
+      priority: 'high',
+      badge: 1,
+      channelId: 'reminders',
     })
-
-    if (result.success) {
-      sent++
-    } else {
+    if (result.success) sent++
+    else {
       errors++
-      // If token is invalid, mark it as inactive
       if (result.error?.includes('Invalid') || result.error?.includes('DeviceNotRegistered')) {
-        await prisma.studentPushToken.update({
-          where: { id: token.id },
-          data: { isActive: false },
-        })
+        await ds.getRepository(StudentPushToken).update(token.id, { isActive: false })
       }
     }
   }
-
   return { success: sent > 0, sent, errors }
 }
 
@@ -324,21 +277,12 @@ export async function sendCommunityMessageNotification(
     console.log(
       `📬 Preparing to send community message notifications (sender: ${senderStudentId} will be excluded)`
     )
-
-    // Get all students in this classroomYear (except the sender) with their lastViewedCommunityAt
-    const students = await prisma.student.findMany({
-      where: {
-        class: {
-          classroomYear,
-        },
-        id: {
-          not: senderStudentId, // Exclude sender
-        },
-      },
-      select: {
-        id: true,
-        lastViewedCommunityAt: true, // Check if they're actively viewing the chat
-      },
+    const ds = await getDataSource()
+    const studentRepo = ds.getRepository(Student)
+    const students = await studentRepo.find({
+      where: { class: { classroomYear }, id: Not(senderStudentId) },
+      select: ['id', 'lastViewedCommunityAt'],
+      relations: ['class'],
     })
 
     if (students.length === 0) {
@@ -350,7 +294,7 @@ export async function sendCommunityMessageNotification(
     // If they viewed within the last 60 seconds, they're likely still in the chat
     const now = new Date()
     const activeViewThreshold = 60 * 1000 // 60 seconds in milliseconds
-    const studentsToNotify = students.filter((student) => {
+    const studentsToNotify = students.filter((student: { id: string; lastViewedCommunityAt: Date | null }) => {
       if (!student.lastViewedCommunityAt) {
         return true // Never viewed, send notification
       }
@@ -370,10 +314,8 @@ export async function sendCommunityMessageNotification(
       return { totalSent: 0, totalErrors: 0 }
     }
 
-    const studentIdsToNotify = studentsToNotify.map((s) => s.id)
-    
-    // Double-check: Ensure sender is NOT in the list (safety check)
-    const filteredStudentIds = studentIdsToNotify.filter((id) => id !== senderStudentId)
+    const studentIdsToNotify = studentsToNotify.map((s: { id: string }) => s.id)
+    const filteredStudentIds = studentIdsToNotify.filter((id: string) => id !== senderStudentId)
     
     if (filteredStudentIds.length !== studentIdsToNotify.length) {
       console.log(`⚠️ Removed sender ${senderStudentId} from notification list (safety check)`)
@@ -388,19 +330,9 @@ export async function sendCommunityMessageNotification(
       return { totalSent: 0, totalErrors: 0 }
     }
 
-    // Get all active push tokens for students who should receive notifications
-    // Group by studentId to avoid duplicate notifications
-    // IMPORTANT: Only get tokens for students who are NOT the sender
-    const tokens = await prisma.studentPushToken.findMany({
-      where: {
-        studentId: {
-          in: filteredStudentIds, // Use filtered list that excludes sender
-        },
-        isActive: true,
-      },
-      orderBy: {
-        updatedAt: 'desc', // Most recently updated token first (likely primary device)
-      },
+    const tokens = await ds.getRepository(StudentPushToken).find({
+      where: { studentId: In(filteredStudentIds), isActive: true },
+      order: { updatedAt: 'DESC' },
     })
 
     if (tokens.length === 0) {
@@ -410,7 +342,7 @@ export async function sendCommunityMessageNotification(
 
     // Group tokens by studentId to track per-student notifications
     // Final safety check: Filter out any tokens that belong to the sender
-    const tokensByStudent = new Map<string, typeof tokens>()
+    const tokensByStudent = new Map<string, import('@/entities').StudentPushToken[]>()
     for (const token of tokens) {
       // Final safety check: Skip sender's tokens
       if (token.studentId === senderStudentId) {
@@ -508,10 +440,7 @@ export async function sendCommunityMessageNotification(
         totalErrors++
         // If token is invalid, mark it as inactive
         if (result.error?.includes('Invalid') || result.error?.includes('DeviceNotRegistered')) {
-          await prisma.studentPushToken.update({
-            where: { id: primaryToken.id },
-            data: { isActive: false },
-          })
+          await ds.getRepository(StudentPushToken).update(primaryToken.id, { isActive: false })
         }
       }
     }

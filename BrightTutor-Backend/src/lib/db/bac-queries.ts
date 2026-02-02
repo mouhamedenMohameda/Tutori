@@ -2,6 +2,7 @@ import { getDataSource } from '@/config/data-source';
 import { parseLearningProgress, serializeLearningProgress } from '@/lib/learning-progress-utils';
 import { BacExercise, BacPartCompletion, AIPersonality, BacCourseCache, StoredBacExercise } from '@/entities';
 import { v4 as uuidv4 } from 'uuid';
+import { In } from 'typeorm';
 
 /**
  * Get or create a Bac exercise record for a student

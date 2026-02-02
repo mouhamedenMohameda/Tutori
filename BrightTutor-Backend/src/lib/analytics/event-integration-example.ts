@@ -19,7 +19,10 @@ import {
   createEventContextFromRequest
 } from './event-schema-v2';
 import { getEventLogger } from './event-logger-v2';
-import { prisma } from '@/lib/prisma';
+import { getDataSource } from '@/config/data-source';
+import { AIConversation, BacExercise } from '@/entities';
+import { v4 as uuidv4 } from 'uuid';
+import { MoreThanOrEqual } from 'typeorm';
 
 // ==========================================
 // EXEMPLE 1: Intégration dans bac-chat.ts
@@ -97,17 +100,17 @@ export async function logAITurnCompletedV2(
     const logger = getEventLogger();
     await logger.log(event);
     
-    // 5. CONTINUER à écrire v1 (double écriture pendant migration)
-    // TODO: Supprimer après 2 semaines
-    await prisma.aIConversation.create({
-      data: {
+    const ds = await getDataSource();
+    await ds.getRepository(AIConversation).save(
+      ds.getRepository(AIConversation).create({
+        id: uuidv4(),
         studentId,
         messageType: 'TEXT',
         studentMessage,
         aiResponse,
-        timestamp: new Date()
-      }
-    });
+        timestamp: new Date(),
+      })
+    );
     
   } catch (error) {
     console.error('❌ Error logging AI turn event v2:', error);
@@ -281,31 +284,21 @@ export async function migrateExistingEventsToV2(days: number = 7) {
   let migrated = 0;
   let errors = 0;
   
-  // 1. Migrer AIConversations
-  const conversations = await prisma.aIConversation.findMany({
-    where: {
-      timestamp: {
-        gte: cutoffDate
-      }
-    },
-    include: {
-      student: {
-        select: {
-          id: true,
-          languagePreference: true
-        }
-      }
-    },
-    take: 1000 // Limiter pour test
+  const ds = await getDataSource();
+  const conversations = await ds.getRepository(AIConversation).find({
+    where: { timestamp: MoreThanOrEqual(cutoffDate) },
+    relations: ['student'],
+    take: 1000,
   });
-  
+
   for (const conv of conversations) {
     try {
+      const student = conv.student as { id: string; languagePreference?: string } | undefined;
       const context = createEventContextFromRequest({
         userId: conv.studentId,
         role: 'student',
         requestId: `migrate_${conv.id}`,
-        languagePref: (conv.student.languagePreference as 'fr' | 'ar') || 'fr'
+        languagePref: (student?.languagePreference as 'fr' | 'ar') || 'fr'
       }, `session_${conv.studentId}_${Date.now()}`);
       
       // Estimer tokens depuis longueur (approximation)
@@ -343,21 +336,10 @@ export async function migrateExistingEventsToV2(days: number = 7) {
     }
   }
   
-  // 2. Migrer BacExercises
-  const bacExercises = await prisma.bacExercise.findMany({
-    where: {
-      lastAccessedAt: {
-        gte: cutoffDate
-      }
-    },
-    include: {
-      student: {
-        select: {
-          id: true
-        }
-      }
-    },
-    take: 500
+  const bacExercises = await ds.getRepository(BacExercise).find({
+    where: { lastAccessedAt: MoreThanOrEqual(cutoffDate) },
+    relations: ['student'],
+    take: 500,
   });
   
   for (const ex of bacExercises) {
