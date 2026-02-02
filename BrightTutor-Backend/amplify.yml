@@ -1,0 +1,35 @@
+version: 1
+frontend:
+  build:
+    image: amazonlinux:2023
+  phases:
+    preBuild:
+      commands:
+        - echo "Setting up environment for BrightTutor Backend"
+        - node --version && npm --version
+        - echo "DATABASE_URL=$DATABASE_URL" > .env
+        - echo "JWT_SECRET=$JWT_SECRET" >> .env
+        - echo "JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}" >> .env
+        - echo "NODE_ENV=production" >> .env
+        - echo "CRON_SECRET=$CRON_SECRET" >> .env
+        - '[ -n "$OPENAI_API_KEY" ] && echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> .env || true'
+        - '[ -n "$GEMINI_API_KEY" ] && echo "GEMINI_API_KEY=$GEMINI_API_KEY" >> .env || true'
+        - '[ -n "$GOOGLE_VISION_API_KEY" ] && echo "GOOGLE_VISION_API_KEY=$GOOGLE_VISION_API_KEY" >> .env || true'
+        - '[ -n "$PORT" ] && echo "PORT=$PORT" >> .env || echo "PORT=4000" >> .env'
+    build:
+      commands:
+        - npm ci
+        - npx prisma generate
+        - npx prisma migrate deploy || echo "Migrations may already be applied"
+        - npm run build
+  artifacts:
+    baseDirectory: .
+    files:
+      - 'dist/**/*'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'prisma/**/*'
+      - 'node_modules/**/*'
+  cache:
+    paths:
+      - node_modules/**/*
