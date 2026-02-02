@@ -6,7 +6,6 @@
  */
 
 import { getCache, setCache } from '@/lib/cache';
-import { prisma } from '@/lib/prisma';
 
 export interface CachedAIResponse {
   response: string;

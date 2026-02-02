@@ -1,111 +1,66 @@
-import { prisma } from '@/lib/prisma';
-import { parseLearningProgress, serializeLearningProgress, LearningProgressRoot } from '@/lib/learning-progress-utils';
-
-// Type assertion to ensure TypeScript recognizes BAC models
-// The models exist in Prisma Client, but TypeScript cache may need refresh
-// Using 'as any' is safe here because we know the models exist at runtime
-const prismaClient = prisma as any;
+import { getDataSource } from '@/config/data-source';
+import { parseLearningProgress, serializeLearningProgress } from '@/lib/learning-progress-utils';
+import { BacExercise, BacPartCompletion, AIPersonality, BacCourseCache, StoredBacExercise } from '@/entities';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Get or create a Bac exercise record for a student
- * @throws {Error} if database operation fails
  */
 export async function getOrCreateBacExercise(
   studentId: string,
-  exerciseId: string = 'bac-2023-ex1' // Default to Exercise 1
+  exerciseId: string = 'bac-2023-ex1'
 ) {
-  if (!studentId || !exerciseId) {
-    throw new Error('studentId and exerciseId are required');
-  }
-
-  let exercise = await prismaClient.bacExercise.findUnique({
-    where: {
-      studentId_exerciseId: {
-        studentId,
-        exerciseId,
-      },
-    },
-  });
-
+  if (!studentId || !exerciseId) throw new Error('studentId and exerciseId are required');
+  const ds = await getDataSource();
+  const repo = ds.getRepository(BacExercise);
+  let exercise = await repo.findOne({ where: { studentId, exerciseId } });
   if (!exercise) {
-    // Create new exercise starting at first part
-    exercise = await prismaClient.bacExercise.create({
-      data: {
-        studentId,
-        exerciseId,
-        currentPartId: getFirstPartId(exerciseId),
-        completedParts: [],
-        totalScore: 0,
-      },
+    exercise = repo.create({
+      id: uuidv4(),
+      studentId,
+      exerciseId,
+      currentPartId: getFirstPartId(exerciseId),
+      completedParts: [],
+      totalScore: 0,
     });
-    
-    // Log v2 event: exercise.attempt.started (only for new exercises)
+    await repo.save(exercise);
     try {
       const { logExerciseAttemptStartedV2 } = await import('@/lib/analytics/event-integration-example');
-      const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      await logExerciseAttemptStartedV2(
-        studentId,
-        exerciseId,
-        exercise.currentPartId,
-        requestId,
-        sessionId
-      );
+      await logExerciseAttemptStartedV2(studentId, exerciseId, exercise.currentPartId, `req_${Date.now()}`, `sess_${Date.now()}`);
     } catch (err) {
       console.error('❌ Error logging exercise attempt started v2 (non-blocking):', err);
     }
   }
-
   return exercise;
 }
 
 /**
- * Change the current part for a student's exercise (allows going back to previous parts)
- * This does NOT mark the part as completed, it just changes which part the student is viewing
- * @throws {Error} if database operation fails or partId is invalid
+ * Change the current part for a student's exercise
  */
 export async function changeCurrentPart(
   studentId: string,
   exerciseId: string,
   partId: string
-): Promise<any> {
-  if (!studentId || !exerciseId || !partId) {
-    throw new Error('studentId, exerciseId, and partId are required');
-  }
-
-  // Validate partId exists in exercise sequence
+): Promise<BacExercise> {
+  if (!studentId || !exerciseId || !partId) throw new Error('studentId, exerciseId, and partId are required');
   const sequence = getPartSequence(exerciseId);
-  if (!sequence || sequence.length === 0 || !sequence.includes(partId)) {
-    throw new Error(`Invalid partId ${partId} for exercise ${exerciseId}`);
+  if (!sequence?.length || !sequence.includes(partId)) throw new Error(`Invalid partId ${partId} for exercise ${exerciseId}`);
+  const ds = await getDataSource();
+  const repo = ds.getRepository(BacExercise);
+  let exercise = await repo.findOne({ where: { studentId, exerciseId } });
+  if (!exercise) {
+    exercise = repo.create({ id: uuidv4(), studentId, exerciseId, currentPartId: partId, completedParts: [], totalScore: 0 });
+    await repo.save(exercise);
+  } else {
+    exercise.currentPartId = partId;
+    exercise.lastAccessedAt = new Date();
+    await repo.save(exercise);
   }
-
-  // Use upsert to avoid separate getOrCreate + update (saves one DB query and connection)
-  // This is more efficient than getOrCreateBacExercise + update
-  return await prismaClient.bacExercise.upsert({
-    where: {
-      studentId_exerciseId: {
-        studentId,
-        exerciseId,
-      },
-    },
-    update: {
-      currentPartId: partId,
-      lastAccessedAt: new Date(),
-    },
-    create: {
-      studentId,
-      exerciseId,
-      currentPartId: partId, // Use the requested partId (already validated)
-      completedParts: [],
-      totalScore: 0,
-    },
-  });
+  return exercise;
 }
 
 /**
  * Mark a part as completed
- * Uses transaction to ensure data consistency
- * @throws {Error} if database operation fails or invalid parameters
  */
 export async function completePartForStudent(
   studentId: string,
@@ -114,279 +69,105 @@ export async function completePartForStudent(
   score: number,
   timeSpent: number
 ) {
-  // Validate inputs
-  if (!studentId || !exerciseId || !partId) {
-    throw new Error('studentId, exerciseId, and partId are required');
-  }
-  if (score < 0 || score > 1) {
-    throw new Error('score must be between 0 and 1');
-  }
-  if (timeSpent < 0) {
-    throw new Error('timeSpent must be non-negative');
-  }
-  // Validate partId is in the sequence
+  if (!studentId || !exerciseId || !partId) throw new Error('studentId, exerciseId, and partId are required');
+  if (score < 0 || score > 1) throw new Error('score must be between 0 and 1');
+  if (timeSpent < 0) throw new Error('timeSpent must be non-negative');
   const sequence = getPartSequence(exerciseId);
-  if (!sequence.includes(partId)) {
-    throw new Error(`Invalid partId ${partId} for exercise ${exerciseId}`);
-  }
-  // Use transaction to ensure atomicity of both operations
-  return await prisma.$transaction(async (tx) => {
-    // 1. Get or create exercise record first (within transaction)
-    let exercise = await (tx as any).bacExercise.findUnique({
-      where: {
-        studentId_exerciseId: {
-          studentId,
-          exerciseId,
-        },
-      },
-    });
-
+  if (!sequence.includes(partId)) throw new Error(`Invalid partId ${partId} for exercise ${exerciseId}`);
+  const ds = await getDataSource();
+  const result = await ds.manager.transaction(async (manager) => {
+    const repoEx = manager.getRepository(BacExercise);
+    const repoPart = manager.getRepository(BacPartCompletion);
+    let exercise = await repoEx.findOne({ where: { studentId, exerciseId } });
     if (!exercise) {
-      exercise = await (tx as any).bacExercise.create({
-        data: {
-          studentId,
-          exerciseId,
-          currentPartId: getFirstPartId(exerciseId),
-          completedParts: [],
-          totalScore: 0,
-        },
-      });
+      exercise = repoEx.create({ id: uuidv4(), studentId, exerciseId, currentPartId: getFirstPartId(exerciseId), completedParts: [], totalScore: 0 });
+      await repoEx.save(exercise);
     }
-
-    // 2. Update or create part completion
-    await (tx as any).bacPartCompletion.upsert({
-      where: {
-        studentId_exerciseId_partId: {
-          studentId,
-          exerciseId,
-          partId,
-        },
-      },
-      update: {
-        completed: true,
-        score,
-        timeSpent,
-        completedAt: new Date(),
-        attempts: {
-          increment: 1,
-        },
-      },
-      create: {
-        studentId,
-        exerciseId,
-        partId,
-        completed: true,
-        score,
-        timeSpent,
-        attempts: 1,
-        completedAt: new Date(),
-      },
-    });
-
-    // 3. Update BacExercise record
-    // Add to completed parts if not already there
-    const completedParts = exercise.completedParts.includes(partId)
-      ? exercise.completedParts
-      : [...exercise.completedParts, partId];
-
-    // Calculate next part
+    const existingPart = await repoPart.findOne({ where: { studentId, exerciseId, partId } });
+    if (existingPart) {
+      existingPart.completed = true;
+      existingPart.score = score;
+      existingPart.timeSpent = timeSpent;
+      existingPart.completedAt = new Date();
+      existingPart.attempts = (existingPart.attempts || 0) + 1;
+      await repoPart.save(existingPart);
+    } else {
+      const part = repoPart.create({ id: uuidv4(), studentId, exerciseId, partId, completed: true, score, timeSpent, attempts: 1, completedAt: new Date() });
+      await repoPart.save(part);
+    }
+    const completedParts = exercise.completedParts.includes(partId) ? exercise.completedParts : [...exercise.completedParts, partId];
     const nextPartId = getNextPartId(exerciseId, partId);
-
-    await (tx as any).bacExercise.update({
-      where: {
-        studentId_exerciseId: {
-          studentId,
-          exerciseId,
-        },
-      },
-      data: {
-        completedParts,
-        currentPartId: nextPartId || partId, // Stay on last part if finished
-        totalScore: {
-          increment: score,
-        },
-        lastAccessedAt: new Date(),
-      },
-    });
-
+    exercise.completedParts = completedParts;
+    exercise.currentPartId = nextPartId || partId;
+    exercise.totalScore = (exercise.totalScore || 0) + score;
+    exercise.lastAccessedAt = new Date();
+    await repoEx.save(exercise);
     return { nextPartId, completed: completedParts.length };
-  }).then(async (result) => {
-    // Log v2 event: exercise.attempt.completed (after transaction)
-    try {
-      const { logExerciseAttemptCompletedV2 } = await import('@/lib/analytics/event-integration-example');
-      const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const attemptId = `attempt_${exerciseId}_${partId}_${studentId}`;
-      
-      // Get completion data for logging
-      const completion = await prismaClient.bacPartCompletion.findUnique({
-        where: {
-          studentId_exerciseId_partId: {
-            studentId,
-            exerciseId,
-            partId,
-          },
-        },
-      });
-      
-      if (completion) {
-        await logExerciseAttemptCompletedV2(
-          studentId,
-          attemptId,
-          exerciseId,
-          [partId],
-          score,
-          1.0, // maxScore
-          completion.attempts || 1,
-          timeSpent,
-          requestId,
-          sessionId
-        );
-      }
-    } catch (err) {
-      console.error('❌ Error logging exercise attempt completed v2 (non-blocking):', err);
-    }
-    
-    return result;
   });
+  try {
+    const completion = await ds.getRepository(BacPartCompletion).findOne({ where: { studentId, exerciseId, partId } });
+    if (completion) {
+      const { logExerciseAttemptCompletedV2 } = await import('@/lib/analytics/event-integration-example');
+      await logExerciseAttemptCompletedV2(studentId, `attempt_${exerciseId}_${partId}_${studentId}`, exerciseId, [partId], score, 1.0, completion.attempts || 1, timeSpent, `req_${Date.now()}`, `sess_${Date.now()}`);
+    }
+  } catch (err) {
+    console.error('❌ Error logging exercise attempt completed v2 (non-blocking):', err);
+  }
+  return result;
 }
 
 /**
  * Get student's progress for an exercise
- * @throws {Error} if database operation fails
  */
 export async function getBacProgress(studentId: string, exerciseId: string) {
-  if (!studentId || !exerciseId) {
-    throw new Error('studentId and exerciseId are required');
-  }
-
+  if (!studentId || !exerciseId) throw new Error('studentId and exerciseId are required');
   const exercise = await getOrCreateBacExercise(studentId, exerciseId);
-  
-  const partCompletions = await prismaClient.bacPartCompletion.findMany({
-    where: {
-      studentId,
-      exerciseId,
-    },
-    orderBy: {
-      createdAt: 'asc',
-    },
+  const ds = await getDataSource();
+  const partCompletions = await ds.getRepository(BacPartCompletion).find({
+    where: { studentId, exerciseId },
+    order: { createdAt: 'ASC' },
   });
-
   const sequence = getPartSequence(exerciseId);
   const total = sequence.length > 0 ? sequence.length : 1;
   const completed = exercise.completedParts.length;
   const percentage = Math.round((completed / total) * 100);
-
-  return {
-    exercise,
-    partCompletions,
-    progress: {
-      completed,
-      percentage,
-    },
-  };
+  return { exercise, partCompletions, progress: { completed, percentage } };
 }
 
 /**
- * Get student's progress for multiple exercises in a single batch query
- * Optimized to reduce N+1 query problems
- * @throws {Error} if database operation fails
+ * Get student's progress for multiple exercises
  */
 export async function getAllBacProgress(studentId: string, exerciseIds: string[]) {
-  if (!studentId || !exerciseIds || exerciseIds.length === 0) {
-    throw new Error('studentId and exerciseIds array are required');
+  if (!studentId || !exerciseIds?.length) throw new Error('studentId and exerciseIds array are required');
+  const ds = await getDataSource();
+  const repoEx = ds.getRepository(BacExercise);
+  const repoPart = ds.getRepository(BacPartCompletion);
+  const existingExercises = await repoEx.find({ where: { studentId, exerciseId: In(exerciseIds) } });
+  const exerciseMap = new Map<string, BacExercise>();
+  for (const ex of existingExercises) exerciseMap.set(ex.exerciseId, ex);
+  const missingIds = exerciseIds.filter(id => !exerciseMap.has(id));
+  for (const exerciseId of missingIds) {
+    const ex = repoEx.create({ id: uuidv4(), studentId, exerciseId, currentPartId: getFirstPartId(exerciseId), completedParts: [], totalScore: 0 });
+    await repoEx.save(ex);
+    exerciseMap.set(ex.exerciseId, ex);
   }
-
-  // 🔥 OPTIMIZED: Fetch all exercises in a single query instead of multiple queries
-  const existingExercises = await prismaClient.bacExercise.findMany({
-    where: {
-      studentId,
-      exerciseId: { in: exerciseIds },
-    },
-  });
-
-  // Create a map of existing exercises for quick lookup
-  const exerciseMap = new Map<string, any>();
-  for (const exercise of existingExercises) {
-    exerciseMap.set(exercise.exerciseId, exercise);
+  const allPartCompletions = await repoPart.find({ where: { studentId, exerciseId: In(exerciseIds) }, order: { createdAt: 'ASC' } });
+  const partByExercise = new Map<string, BacPartCompletion[]>();
+  for (const c of allPartCompletions) {
+    if (!partByExercise.has(c.exerciseId)) partByExercise.set(c.exerciseId, []);
+    partByExercise.get(c.exerciseId)!.push(c);
   }
-
-  // Find missing exercises and create them in batch
-  const missingExerciseIds = exerciseIds.filter(id => !exerciseMap.has(id));
-  if (missingExerciseIds.length > 0) {
-    // Create missing exercises in parallel (but limit concurrency)
-    const newExercises = await Promise.all(
-      missingExerciseIds.map(exerciseId => 
-        prismaClient.bacExercise.create({
-          data: {
-            studentId,
-            exerciseId,
-            currentPartId: getFirstPartId(exerciseId),
-            completedParts: [],
-            totalScore: 0,
-          },
-        })
-      )
-    );
-    
-    // Add new exercises to the map
-    for (const exercise of newExercises) {
-      exerciseMap.set(exercise.exerciseId, exercise);
-    }
-  }
-
-  // Fetch all part completions in a single query (already optimized)
-  const allPartCompletions = await prismaClient.bacPartCompletion.findMany({
-    where: {
-      studentId,
-      exerciseId: { in: exerciseIds },
-    },
-    orderBy: {
-      createdAt: 'asc',
-    },
-  });
-
-  // Group part completions by exerciseId
-  const partCompletionsByExercise = new Map<string, any[]>();
-  for (const completion of allPartCompletions) {
-    const exerciseId = completion.exerciseId;
-    if (!partCompletionsByExercise.has(exerciseId)) {
-      partCompletionsByExercise.set(exerciseId, []);
-    }
-    partCompletionsByExercise.get(exerciseId)!.push(completion);
-  }
-
-  // Build result map
-  const result: Record<string, {
-    exercise: any;
-    partCompletions: any[];
-    progress: {
-      completed: number;
-      percentage: number;
-    };
-  }> = {};
-
-  // Use the exerciseIds order to maintain consistency
+  const result: Record<string, { exercise: BacExercise; partCompletions: BacPartCompletion[]; progress: { completed: number; percentage: number } }> = {};
   for (const exerciseId of exerciseIds) {
     const exercise = exerciseMap.get(exerciseId);
     if (exercise) {
-      const partCompletions = partCompletionsByExercise.get(exerciseId) || [];
-      const sequence = getPartSequence(exerciseId);
-      const total = sequence.length > 0 ? sequence.length : 1;
+      const partCompletions = partByExercise.get(exerciseId) || [];
+      const seq = getPartSequence(exerciseId);
+      const total = seq.length > 0 ? seq.length : 1;
       const completed = exercise.completedParts.length;
-      const percentage = Math.round((completed / total) * 100);
-      
-      result[exerciseId] = {
-        exercise,
-        partCompletions,
-        progress: {
-          completed,
-          percentage,
-        },
-      };
+      result[exerciseId] = { exercise, partCompletions, progress: { completed, percentage: Math.round((completed / total) * 100) } };
     }
   }
-
   return result;
 }
 
@@ -544,12 +325,8 @@ export async function saveBacPartProgress(
     throw new Error('studentId, exerciseId, and partId are required');
   }
 
-  // Get existing AI personality to preserve all data
-  const aiPersonality = await prisma.aIPersonality.findUnique({
-    where: { studentId },
-  });
-
-  // Parse existing learning progress (preserves math, science, sectionProgress, etc.)
+  const ds = await getDataSource();
+  const aiPersonality = await ds.getRepository(AIPersonality).findOne({ where: { studentId } });
   const allProgress = parseLearningProgress(aiPersonality?.learningProgress ?? '{}');
 
   // Initialize bacProgress if it doesn't exist
@@ -598,19 +375,15 @@ export async function saveBacPartProgress(
   };
 
   allProgress.bacProgress[exerciseId][partId] = newProgress;
-
-  // Save to database (preserves all other progress)
-  await prisma.aIPersonality.upsert({
-    where: { studentId },
-    create: {
-      studentId,
-      learningProgress: serializeLearningProgress(allProgress),
-    },
-    update: {
-      learningProgress: serializeLearningProgress(allProgress),
-      updatedAt: new Date(),
-    },
-  });
+  const repo = ds.getRepository(AIPersonality);
+  const existing = await repo.findOne({ where: { studentId } });
+  if (existing) {
+    existing.learningProgress = serializeLearningProgress(allProgress);
+    existing.updatedAt = new Date();
+    await repo.save(existing);
+  } else {
+    await repo.save(repo.create({ id: uuidv4(), studentId, learningProgress: serializeLearningProgress(allProgress) }));
+  }
 }
 
 /**
@@ -628,16 +401,9 @@ export async function getBacPartProgress(
     throw new Error('studentId, exerciseId, and partId are required');
   }
 
-  // Get AI personality
-  const aiPersonality = await prisma.aIPersonality.findUnique({
-    where: { studentId },
-  });
-
-  if (!aiPersonality) {
-    return null;
-  }
-
-  // Parse learning progress
+  const ds = await getDataSource();
+  const aiPersonality = await ds.getRepository(AIPersonality).findOne({ where: { studentId } });
+  if (!aiPersonality) return null;
   const allProgress = parseLearningProgress(aiPersonality.learningProgress ?? '{}');
 
   // Check if bacProgress exists and has data for this exercise/part
@@ -688,16 +454,9 @@ export async function clearBacPartProgress(
     throw new Error('studentId, exerciseId, and partId are required');
   }
 
-  // Get existing AI personality
-  const aiPersonality = await prisma.aIPersonality.findUnique({
-    where: { studentId },
-  });
-
-  if (!aiPersonality) {
-    return; // Nothing to clear
-  }
-
-  // Parse existing learning progress
+  const ds = await getDataSource();
+  const aiPersonality = await ds.getRepository(AIPersonality).findOne({ where: { studentId } });
+  if (!aiPersonality) return;
   const allProgress = parseLearningProgress(aiPersonality.learningProgress ?? '{}');
 
   // Only clear if bacProgress exists and has data for this exercise/part
@@ -715,14 +474,9 @@ export async function clearBacPartProgress(
       delete allProgress.bacProgress[exerciseId];
     }
 
-    // Save to database
-    await prisma.aIPersonality.update({
-      where: { studentId },
-      data: {
-        learningProgress: serializeLearningProgress(allProgress),
-        updatedAt: new Date(),
-      },
-    });
+    aiPersonality.learningProgress = serializeLearningProgress(allProgress);
+    aiPersonality.updatedAt = new Date();
+    await ds.getRepository(AIPersonality).save(aiPersonality);
   }
 }
 
@@ -742,29 +496,16 @@ export async function getBacCourse(exerciseId: string): Promise<{
   totalRatings: number;
 } | null> {
   try {
-    // Get all courses for this exercise and find the best one (highest rating)
-    const courses = await (prismaClient as any).bacCourseCache.findMany({
+    const ds = await getDataSource();
+    const repo = ds.getRepository(BacCourseCache);
+    const courses = await repo.find({
       where: { exerciseId },
-      orderBy: [
-        { averageRating: 'desc' }, // Best rated first
-        { totalRatings: 'desc' }, // If same rating, prefer more ratings
-        { createdAt: 'desc' }, // Most recent if same
-      ],
-      take: 1, // Only get the best one
+      order: { averageRating: 'DESC', totalRatings: 'DESC', createdAt: 'DESC' },
+      take: 1,
     });
-
-    if (!courses || courses.length === 0) {
-      return null;
-    }
-
-    const course = courses[0];
-    return {
-      id: course.id,
-      exerciseId: course.exerciseId,
-      courseContent: course.courseContent,
-      averageRating: course.averageRating,
-      totalRatings: course.totalRatings,
-    };
+    if (!courses.length) return null;
+    const c = courses[0];
+    return { id: c.id, exerciseId: c.exerciseId, courseContent: c.courseContent, averageRating: c.averageRating, totalRatings: c.totalRatings };
   } catch (error) {
     console.error('Error getting BAC course from cache:', error);
     return null;
@@ -775,24 +516,13 @@ export async function getBacCourse(exerciseId: string): Promise<{
  * Save a new course to cache
  * Always saves a new course (allows multiple courses per exercise)
  */
-export async function saveBacCourse(
-  exerciseId: string,
-  courseContent: string
-): Promise<string> {
+export async function saveBacCourse(exerciseId: string, courseContent: string): Promise<string> {
   try {
-    // Always save a new course (no check for existing courses)
-    const newCourse = await (prismaClient as any).bacCourseCache.create({
-      data: {
-        exerciseId,
-        courseContent,
-        averageRating: 0,
-        totalRatings: 0,
-        ratings: '[]',
-      },
-    });
-
-    console.log(`Saved new course for ${exerciseId} (ID: ${newCourse.id})`);
-    return newCourse.id;
+    const ds = await getDataSource();
+    const repo = ds.getRepository(BacCourseCache);
+    const course = repo.create({ id: uuidv4(), exerciseId, courseContent, averageRating: 0, totalRatings: 0, ratings: '[]' });
+    await repo.save(course);
+    return course.id;
   } catch (error) {
     console.error('Error saving BAC course to cache:', error);
     throw error;
@@ -808,117 +538,36 @@ export async function saveBacCourse(
 export async function rateBacCourse(
   courseId: string,
   studentId: string,
-  rating: number // 1-5
-): Promise<{
-  id: string;
-  exerciseId: string;
-  averageRating: number;
-  totalRatings: number;
-} | null> {
+  rating: number
+): Promise<{ id: string; exerciseId: string; averageRating: number; totalRatings: number } | null> {
   try {
-    // Validate rating
-    if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
-      throw new Error('Rating must be an integer between 1 and 5');
-    }
-
-    // Get the course to rate
-    const course = await (prismaClient as any).bacCourseCache.findUnique({
-      where: { id: courseId },
-    });
-
-    if (!course) {
-      console.log(`Course not found with ID ${courseId}, cannot rate`);
-      return null;
-    }
-
+    if (rating < 1 || rating > 5 || !Number.isInteger(rating)) throw new Error('Rating must be an integer between 1 and 5');
+    const ds = await getDataSource();
+    const repo = ds.getRepository(BacCourseCache);
+    const course = await repo.findOne({ where: { id: courseId } });
+    if (!course) return null;
     const exerciseId = course.exerciseId;
-
-    // Parse existing ratings
-    const ratings: Array<{ studentId: string; rating: number; createdAt: string }> = 
-      course.ratings ? JSON.parse(course.ratings) : [];
-
-    // Check if student already rated this course
-    const existingRatingIndex = ratings.findIndex(r => r.studentId === studentId);
-
-    if (existingRatingIndex >= 0) {
-      // Update existing rating
-      ratings[existingRatingIndex] = {
-        studentId,
-        rating,
-        createdAt: new Date().toISOString(),
-      };
-    } else {
-      // Add new rating
-      ratings.push({
-        studentId,
-        rating,
-        createdAt: new Date().toISOString(),
-      });
-    }
-
-    // Calculate new average
+    const ratings: Array<{ studentId: string; rating: number; createdAt: string }> = course.ratings ? JSON.parse(course.ratings) : [];
+    const idx = ratings.findIndex(r => r.studentId === studentId);
+    if (idx >= 0) ratings[idx] = { studentId, rating, createdAt: new Date().toISOString() };
+    else ratings.push({ studentId, rating, createdAt: new Date().toISOString() });
     const totalRatings = ratings.length;
-    const sumRatings = ratings.reduce((sum, r) => sum + r.rating, 0);
-    const averageRating = totalRatings > 0 ? sumRatings / totalRatings : 0;
-
-    // Update course
-    const updatedCourse = await (prismaClient as any).bacCourseCache.update({
-      where: { id: courseId },
-      data: {
-        averageRating,
-        totalRatings,
-        ratings: JSON.stringify(ratings),
-      },
-    });
-
-    console.log(`Course ${courseId} (${exerciseId}) rated: ${rating} stars. New average: ${averageRating.toFixed(2)}`);
-
-    // Now check if this course is the best for this exercise
-    // Get all courses for this exercise (including the one we just rated)
-    const allCourses = await (prismaClient as any).bacCourseCache.findMany({
-      where: { exerciseId },
-    });
-
-    // Find the best rating among OTHER courses (excluding the one we just rated)
-    const otherCourses = allCourses.filter((c: any) => c.id !== courseId);
-    const bestRating = otherCourses.length > 0 
-      ? Math.max(...otherCourses.map((c: any) => c.averageRating), 0)
-      : 0;
-
-    // Compare: if this course's rating is better than or equal to the best existing course
+    const averageRating = totalRatings > 0 ? ratings.reduce((s, r) => s + r.rating, 0) / totalRatings : 0;
+    course.averageRating = averageRating;
+    course.totalRatings = totalRatings;
+    course.ratings = JSON.stringify(ratings);
+    await repo.save(course);
+    const allCourses = await repo.find({ where: { exerciseId } });
+    const otherCourses = allCourses.filter(c => c.id !== courseId);
+    const bestRating = otherCourses.length > 0 ? Math.max(...otherCourses.map(c => c.averageRating), 0) : 0;
     if (averageRating >= bestRating) {
-      // This course is now the best (or tied) - delete all courses with lower ratings
-      const coursesToDelete = otherCourses.filter((c: any) => 
-        c.averageRating < averageRating
-      );
-
-      if (coursesToDelete.length > 0) {
-        console.log(`✅ Course ${courseId} is now best (${averageRating.toFixed(2)}). Deleting ${coursesToDelete.length} courses with lower ratings for ${exerciseId}`);
-        
-        // Delete all courses with lower ratings
-        for (const courseToDelete of coursesToDelete) {
-          await (prismaClient as any).bacCourseCache.delete({
-            where: { id: courseToDelete.id },
-          });
-        }
-      }
+      const toDelete = otherCourses.filter(c => c.averageRating < averageRating);
+      for (const c of toDelete) await repo.remove(c);
     } else if (bestRating > averageRating) {
-      // This course has a lower rating than existing courses - delete it
-      console.log(`❌ Course ${courseId} has rating ${averageRating.toFixed(2)} which is lower than best (${bestRating.toFixed(2)}), deleting it`);
-      await (prismaClient as any).bacCourseCache.delete({
-        where: { id: courseId },
-      });
-      
-      // Return null to indicate the course was deleted
+      await repo.remove(course);
       return null;
     }
-
-    return {
-      id: updatedCourse.id,
-      exerciseId: updatedCourse.exerciseId,
-      averageRating: updatedCourse.averageRating,
-      totalRatings: updatedCourse.totalRatings,
-    };
+    return { id: course.id, exerciseId: course.exerciseId, averageRating: course.averageRating, totalRatings: course.totalRatings };
   } catch (error) {
     console.error('Error rating BAC course:', error);
     throw error;
@@ -948,57 +597,38 @@ export async function getStoredBacExercise(
   objectives: string[];
   partSequence: string[];
   enonceComplet: string | null;
-  parts: Array<{
-    id: string;
-    partId: string;
-    question: string;
-    type: string;
-    difficulty: string;
-    validated: boolean;
-    orderIndex: number;
-  }>;
+  parts: Array<{ id: string; partId: string; question: string; type: string; difficulty: string; validated: boolean; orderIndex: number }>;
 } | null> {
   try {
-    const storedExercise = await prismaClient.storedBacExercise.findUnique({
-      where: {
-        chapterId_exerciseId: {
-          chapterId,
-          exerciseId,
-        },
-      },
-      include: {
-        parts: {
-          orderBy: {
-            orderIndex: 'asc',
-          },
-        },
-      },
+    const ds = await getDataSource();
+    const repo = ds.getRepository(StoredBacExercise);
+    const stored = await repo.findOne({
+      where: { chapterId, exerciseId },
+      relations: ['parts'],
+      order: { parts: { orderIndex: 'ASC' } } as unknown as { parts: { orderIndex: 'ASC' } },
     });
-
-    if (!storedExercise) {
-      return null;
-    }
-
+    if (!stored) return null;
+    const parts = (stored.parts || []).slice().sort((a: { orderIndex: number }, b: { orderIndex: number }) => a.orderIndex - b.orderIndex);
     return {
-      id: storedExercise.id,
-      chapterId: storedExercise.chapterId,
-      exerciseId: storedExercise.exerciseId,
-      title: storedExercise.title,
-      description: storedExercise.description,
-      subject: storedExercise.subject,
-      difficulty: storedExercise.difficulty,
-      concepts: storedExercise.concepts || [],
-      objectives: storedExercise.objectives || [],
-      partSequence: storedExercise.partSequence || [],
-      enonceComplet: storedExercise.enonceComplet,
-      parts: storedExercise.parts.map((part: any) => ({
-        id: part.id,
-        partId: part.partId,
-        question: part.question,
-        type: part.type,
-        difficulty: part.difficulty,
-        validated: part.validated,
-        orderIndex: part.orderIndex,
+      id: stored.id,
+      chapterId: stored.chapterId,
+      exerciseId: stored.exerciseId,
+      title: stored.title,
+      description: stored.description,
+      subject: stored.subject,
+      difficulty: stored.difficulty,
+      concepts: stored.concepts || [],
+      objectives: stored.objectives || [],
+      partSequence: stored.partSequence || [],
+      enonceComplet: stored.enonceComplet,
+      parts: parts.map((p: { id: string; partId: string; question: string; type: string; difficulty: string; validated: boolean; orderIndex: number }) => ({
+        id: p.id,
+        partId: p.partId,
+        question: p.question,
+        type: p.type,
+        difficulty: p.difficulty,
+        validated: p.validated,
+        orderIndex: p.orderIndex,
       })),
     };
   } catch (error) {
@@ -1010,23 +640,11 @@ export async function getStoredBacExercise(
 /**
  * Check if a stored exercise exists for a chapter and exercise ID
  */
-export async function hasStoredBacExercise(
-  chapterId: string,
-  exerciseId: string
-): Promise<boolean> {
+export async function hasStoredBacExercise(chapterId: string, exerciseId: string): Promise<boolean> {
   try {
-    // 🔥 OPTIMIZATION: Use findFirst instead of count - much faster
-    const exercise = await prismaClient.storedBacExercise.findFirst({
-      where: {
-        chapterId,
-        exerciseId,
-        isActive: true,
-      },
-      select: {
-        id: true, // Only select id to minimize data transfer
-      },
-    });
-    return exercise !== null;
+    const ds = await getDataSource();
+    const one = await ds.getRepository(StoredBacExercise).findOne({ where: { chapterId, exerciseId, isActive: true }, select: ['id'] });
+    return one !== null;
   } catch (error) {
     console.error('Error checking stored BAC exercise:', error);
     return false;
@@ -1036,9 +654,7 @@ export async function hasStoredBacExercise(
 /**
  * Get all stored exercises for a chapter
  */
-export async function getStoredBacExercisesByChapter(
-  chapterId: string
-): Promise<Array<{
+export async function getStoredBacExercisesByChapter(chapterId: string): Promise<Array<{
   id: string;
   exerciseId: string;
   title: string;
@@ -1048,26 +664,13 @@ export async function getStoredBacExercisesByChapter(
   partSequence: string[];
 }>> {
   try {
-    const exercises = await prismaClient.storedBacExercise.findMany({
-      where: {
-        chapterId,
-        isActive: true,
-      },
-      select: {
-        id: true,
-        exerciseId: true,
-        title: true,
-        description: true,
-        subject: true,
-        difficulty: true,
-        partSequence: true,
-      },
-      orderBy: {
-        exerciseId: 'asc',
-      },
+    const ds = await getDataSource();
+    const list = await ds.getRepository(StoredBacExercise).find({
+      where: { chapterId, isActive: true },
+      select: ['id', 'exerciseId', 'title', 'description', 'subject', 'difficulty', 'partSequence'],
+      order: { exerciseId: 'ASC' },
     });
-
-    return exercises;
+    return list;
   } catch (error) {
     console.error('Error getting stored BAC exercises by chapter:', error);
     throw error;

@@ -3,7 +3,8 @@
  * Tracks token usage per student for BAC dashboard
  */
 
-import { prisma } from '@/lib/prisma';
+import { getDataSource } from '@/config/data-source';
+import { Student } from '@/entities';
 
 /**
  * Estimate tokens from text (rough approximation)
@@ -11,42 +12,23 @@ import { prisma } from '@/lib/prisma';
  */
 export function estimateTokens(text: string): number {
   if (!text) return 0;
-  // Rough estimation: ~4 characters per token
   return Math.ceil(text.length / 4);
 }
 
 /**
  * Track tokens used by a student
- * Updates the totalTokensUsed field in the Student model
  */
 export async function trackTokens(studentId: string, tokensUsed: number): Promise<void> {
-  console.log(`🔍 trackTokens called: studentId=${studentId}, tokensUsed=${tokensUsed}`);
-  
-  if (!studentId || tokensUsed <= 0) {
-    console.warn(`⚠️ Skipping token tracking: studentId=${studentId}, tokensUsed=${tokensUsed}`);
-    return;
-  }
-  
+  if (!studentId || tokensUsed <= 0) return;
   try {
-    console.log(`📝 Updating tokens for student ${studentId}...`);
-    const result = await prisma.student.update({
-      where: { id: studentId },
-      data: {
-        totalTokensUsed: {
-          increment: tokensUsed
-        }
-      },
-      select: { totalTokensUsed: true }
-    });
-    console.log(`✅ Tracked ${tokensUsed} tokens for student ${studentId}. New total: ${result.totalTokensUsed}`);
-  } catch (error: any) {
+    const ds = await getDataSource();
+    const repo = ds.getRepository(Student);
+    const student = await repo.findOne({ where: { id: studentId }, select: ['id', 'totalTokensUsed'] });
+    if (!student) return;
+    const current = (student as { totalTokensUsed?: number }).totalTokensUsed ?? 0;
+    await repo.update(studentId, { totalTokensUsed: current + tokensUsed });
+  } catch (error: unknown) {
     console.error(`❌ Error tracking tokens for student ${studentId}:`, error);
-    console.error(`❌ Error details:`, {
-      message: error.message,
-      code: error.code,
-      meta: error.meta
-    });
-    // Don't throw - token tracking should not break the main flow
   }
 }
 
@@ -55,13 +37,11 @@ export async function trackTokens(studentId: string, tokensUsed: number): Promis
  */
 export async function getStudentTokens(studentId: string): Promise<number> {
   try {
-    const student = await prisma.student.findUnique({
-      where: { id: studentId },
-      select: { totalTokensUsed: true }
-    });
-    return student?.totalTokensUsed || 0;
-  } catch (error) {
-    console.error(`❌ Error getting tokens for student ${studentId}:`, error);
+    const ds = await getDataSource();
+    const repo = ds.getRepository(Student);
+    const student = await repo.findOne({ where: { id: studentId }, select: ['totalTokensUsed'] });
+    return (student as { totalTokensUsed?: number } | null)?.totalTokensUsed ?? 0;
+  } catch {
     return 0;
   }
 }

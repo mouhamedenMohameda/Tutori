@@ -1,10 +1,4 @@
-import type { Prisma } from '@prisma/client'
-
-export type School = Prisma.SchoolGetPayload<{}>
-export type Student = Prisma.StudentGetPayload<{}>
-export type Class = Prisma.ClassGetPayload<{}>
-export type Teacher = Prisma.TeacherGetPayload<{}>
-export type Parent = Prisma.ParentGetPayload<{}>
+export type { School, Student, Class, Teacher, Parent } from '@/entities'
 
 export enum AdminRole {
   TEACHER = 'TEACHER',

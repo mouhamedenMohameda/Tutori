@@ -5,7 +5,8 @@
  */
 
 import { EventEnvelope, validateEvent, ValidationError, EventContext } from './event-schema-v2';
-import { prisma } from '@/lib/prisma';
+import { getDataSource } from '@/config/data-source';
+import { v4 as uuidv4 } from 'uuid';
 
 // ==========================================
 // STORAGE OPTIONS
@@ -90,41 +91,42 @@ export class EventLoggerV2 {
    */
   private async storeEvents(events: EventEnvelope[]): Promise<void> {
     try {
-      // Insérer en batch dans la table analytics_events_v2
-      const records = events.map(event => ({
-        eventId: event.eventId,
-        eventType: event.eventType,
-        eventVersion: event.eventVersion,
-        occurredAt: new Date(event.occurredAt),
-        receivedAt: new Date(event.receivedAt),
-        userId: event.actor.userId,
-        role: event.actor.role,
-        country: event.actor.country || null,
-        languagePref: event.actor.languagePref || null,
-        sessionId: event.session.sessionId,
-        sessionStartedAt: new Date(event.session.startedAt),
-        requestId: event.context.requestId,
-        source: event.context.source,
-        ipHash: event.context.ipHash || null,
-        deviceIdHash: event.context.deviceIdHash || null,
-        env: event.env,
-        appVersion: event.app.appVersion,
-        platform: event.app.platform,
-        payload: event.payload as any,
-        envelope: event as any
-      }));
-      
-      // Utiliser createMany pour insertion batch (plus efficace)
-      await (prisma as any).analyticsEventV2?.createMany({
-        data: records,
-        skipDuplicates: true
-      });
-      
+      const ds = await getDataSource();
+      for (const event of events) {
+        const id = uuidv4();
+        await ds.query(
+          `INSERT INTO analytics_events_v2 (id, event_id, event_type, event_version, occurred_at, received_at, user_id, role, country, language_pref, session_id, session_started_at, request_id, source, ip_hash, device_id_hash, env, app_version, platform, payload, envelope)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+           ON CONFLICT (event_id) DO NOTHING`,
+          [
+            id,
+            event.eventId,
+            event.eventType,
+            event.eventVersion || '2.0',
+            new Date(event.occurredAt),
+            new Date(event.receivedAt),
+            event.actor.userId,
+            event.actor.role,
+            event.actor.country || null,
+            event.actor.languagePref || null,
+            event.session.sessionId,
+            new Date(event.session.startedAt),
+            event.context.requestId,
+            event.context.source,
+            event.context.ipHash || null,
+            event.context.deviceIdHash || null,
+            event.env,
+            event.app.appVersion,
+            event.app.platform,
+            JSON.stringify(event.payload),
+            JSON.stringify(event),
+          ]
+        );
+      }
       console.log(`✅ Stored ${events.length} events v2.0 in database`);
-      
-    } catch (error: any) {
-      // Si la table n'existe pas encore, fallback vers fichier
-      if (error.code === 'P2001' || error.message?.includes('does not exist')) {
+    } catch (error: unknown) {
+      const err = error as { message?: string; code?: string };
+      if (err.code === '42P01' || err.message?.includes('does not exist')) {
         console.warn('⚠️ AnalyticsEventV2 table not found, falling back to file storage');
         await this.storeEventsToFile(events);
       } else {
