@@ -169,6 +169,40 @@ export async function getProfile(studentId: string): Promise<
   }
 }
 
+export async function getKnowledgeBase(studentId: string): Promise<{
+  success: true
+  knowledgeBase: {
+    article: string
+    recentTopics: string[]
+    strugglingAreas: string[]
+    effectiveMethods: string[]
+    lessonPlansDigest: string
+    quizHistorySummary: string
+    version: number
+    updatedAt: string
+  } | null
+}> {
+  const kb = await prisma.studentKnowledgeBase.findUnique({
+    where: { studentId },
+  })
+  if (!kb) {
+    return { success: true, knowledgeBase: null }
+  }
+  return {
+    success: true,
+    knowledgeBase: {
+      article: kb.article ?? '',
+      recentTopics: kb.recentTopics ?? [],
+      strugglingAreas: kb.strugglingAreas ?? [],
+      effectiveMethods: kb.effectiveMethods ?? [],
+      lessonPlansDigest: kb.lessonPlansDigest ?? '',
+      quizHistorySummary: kb.quizHistorySummary ?? '',
+      version: kb.version ?? 1,
+      updatedAt: kb.updatedAt.toISOString(),
+    },
+  }
+}
+
 export async function getMemory(studentId: string): Promise<{
   success: true
   memory: Record<string, unknown> | null

@@ -4,6 +4,7 @@
  */
 import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
+import { prisma } from '@/lib/prisma'
 import { getJWTSecret } from '@/lib/security/secrets'
 import { validateId, validateString } from '@/lib/security/validation'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
@@ -47,6 +48,34 @@ export async function studentContext(req: Request, res: Response): Promise<void>
       return
     }
     const result = getStudentContext(body)
+    res.json(result)
+  } catch (error) {
+    sendSanitizedError(res, error, 'ai/student-context')
+  }
+}
+
+/** GET /ai/student-context/:studentId — alias for mobile app (backend has POST with body). */
+export async function studentContextGet(req: Request, res: Response): Promise<void> {
+  try {
+    const studentId = req.params.studentId
+    if (!studentId) {
+      res.status(400).json({ error: 'Student ID is required' })
+      return
+    }
+    const idValidation = validateId(studentId)
+    if (!idValidation.valid) {
+      res.status(400).json({ error: idValidation.error ?? 'Invalid student ID format' })
+      return
+    }
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      select: { schoolId: true },
+    })
+    if (!student) {
+      res.status(404).json({ error: 'Student not found' })
+      return
+    }
+    const result = getStudentContext({ studentId, schoolId: student.schoolId })
     res.json(result)
   } catch (error) {
     sendSanitizedError(res, error, 'ai/student-context')

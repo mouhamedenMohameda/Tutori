@@ -8,6 +8,7 @@ import {
   mathFormatHandler,
   graphPlotPostHandler,
   graphPlotGetHandler,
+  chatHandler,
 } from '@/controllers/miscController'
 
 const router = Router()
@@ -20,5 +21,6 @@ router.post('/error-log', errorLogHandler)
 router.post('/math/format', mathFormatHandler)
 router.post('/graph/plot', graphPlotPostHandler)
 router.get('/graph/plot', graphPlotGetHandler)
+router.post('/chat', chatHandler)
 
 export default router

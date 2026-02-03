@@ -9,16 +9,25 @@ import {
   getClasses,
   createClass,
   getClassById,
+  updateClass,
   deleteClassById,
   getDashboardStats,
+  getPendingAssignmentsCount,
   getRecentActivity,
   getClassPerformance,
   getStudents,
+  getStudentsSearch,
   getStudentById,
   createStudent,
+  updateStudent,
+  deleteStudent,
   getParentsSearch,
   getParentById,
+  updateParent,
+  deleteParent,
   getTeacherById,
+  updateTeacher,
+  deleteTeacher,
   migrateDatabase,
 } from '@/services/adminService'
 
@@ -102,6 +111,22 @@ export async function getClassByIdHandler(req: Request, res: Response): Promise<
   }
 }
 
+export async function putClassByIdHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = auth.schoolId || (req.query.schoolId as string) || 'school_1'
+    const result = await updateClass(schoolId, req.params.id, req.body || {})
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'admin/classes/:id')
+  }
+}
+
 export async function deleteClassByIdHandler(req: Request, res: Response): Promise<void> {
   try {
     const classId = req.params.id
@@ -156,6 +181,46 @@ export async function getClassPerformanceHandler(req: Request, res: Response): P
   }
 }
 
+/** GET /admin/dashboard — aggregate of stats, recent-activity, class-performance for mobile app */
+export async function getDashboardHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = (req.query.schoolId as string) || auth.schoolId || 'school_1'
+    const [statsResult, pendingCount, recentActivityResult, classPerformanceResult] = await Promise.all([
+      getDashboardStats(schoolId),
+      getPendingAssignmentsCount(schoolId),
+      getRecentActivity(schoolId),
+      getClassPerformance(schoolId),
+    ])
+    const recentStudents =
+      (recentActivityResult as { recentStudents?: Array<{ id: string; name: string; lastActive: Date | string }> })
+        .recentStudents ?? []
+    const classes = (classPerformanceResult as { classes?: unknown }).classes ?? []
+    // recentActivity: alias for mobile OverviewScreen (expects id, type, description, timestamp, user)
+    const recentActivity = recentStudents.map((s) => ({
+      id: s.id,
+      type: 'student_login' as const,
+      description: `${s.name} was active`,
+      timestamp: typeof s.lastActive === 'string' ? s.lastActive : s.lastActive?.toISOString?.() ?? new Date().toISOString(),
+      user: s.name,
+    }))
+    const stats = {
+      ...(statsResult as { stats?: Record<string, unknown> }).stats,
+      pendingAssignments: pendingCount,
+    }
+    res.json({
+      success: true,
+      stats,
+      recentStudents,
+      classes,
+      recentActivity,
+    })
+  } catch (error) {
+    sendSanitizedError(res, error, 'admin/dashboard')
+  }
+}
+
 export async function getStudentsHandler(req: Request, res: Response): Promise<void> {
   try {
     const auth = requireSchoolAdmin(req, res)
@@ -186,6 +251,19 @@ export async function getStudentsHandler(req: Request, res: Response): Promise<v
     res.json({ success: true, ...result })
   } catch (error) {
     sendSanitizedError(res, error, 'admin/students')
+  }
+}
+
+export async function getStudentsSearchHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = auth.schoolId || (req.query.schoolId as string) || 'school_1'
+    const q = (req.query.q as string) || ''
+    const result = await getStudentsSearch(schoolId, q)
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'admin/students/search')
   }
 }
 
@@ -301,6 +379,102 @@ export async function getTeacherByIdHandler(req: Request, res: Response): Promis
     const auth = requireSchoolAdmin(req, res)
     if (!auth) return
     const result = await getTeacherById(req.params.id)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'admin/teachers/:id')
+  }
+}
+
+export async function putStudentByIdHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = auth.schoolId || (req.query.schoolId as string) || 'school_1'
+    const result = await updateStudent(schoolId, req.params.id, req.body || {})
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'admin/students/:id')
+  }
+}
+
+export async function deleteStudentByIdHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = auth.schoolId || (req.query.schoolId as string) || 'school_1'
+    const result = await deleteStudent(schoolId, req.params.id)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'admin/students/:id')
+  }
+}
+
+export async function putParentByIdHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = auth.schoolId || (req.query.schoolId as string) || 'school_1'
+    const result = await updateParent(schoolId, req.params.id, req.body || {})
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'admin/parents/:id')
+  }
+}
+
+export async function deleteParentByIdHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = auth.schoolId || (req.query.schoolId as string) || 'school_1'
+    const result = await deleteParent(schoolId, req.params.id)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'admin/parents/:id')
+  }
+}
+
+export async function putTeacherByIdHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = auth.schoolId || (req.query.schoolId as string) || 'school_1'
+    const result = await updateTeacher(schoolId, req.params.id, req.body || {})
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'admin/teachers/:id')
+  }
+}
+
+export async function deleteTeacherByIdHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = auth.schoolId || (req.query.schoolId as string) || 'school_1'
+    const result = await deleteTeacher(schoolId, req.params.id)
     if ('error' in result) {
       res.status((result as { status: number }).status).json({ error: result.error })
       return

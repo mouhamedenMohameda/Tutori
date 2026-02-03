@@ -8,12 +8,14 @@ import { createRateLimiter, rateLimitConfigs, getRateLimitHeaders } from '@/lib/
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
 import {
   getProfile,
+  getKnowledgeBase,
   getMemory,
   saveMemory,
   getChatHistory,
   getAssignments,
   getMonthlySummary,
 } from '@/services/studentV2Service'
+import { buildTutorContext, getTutorChatResponse } from '@/services/aiService'
 
 const JWT_SECRET = () => getJWTSecret()
 
@@ -107,6 +109,16 @@ export async function memoryPost(req: Request, res: Response): Promise<void> {
   }
 }
 
+export async function knowledgeBaseGet(req: Request, res: Response): Promise<void> {
+  try {
+    if (!requireStudentMatch(req, res, req.params.studentId)) return
+    const result = await getKnowledgeBase(req.params.studentId)
+    res.json(result)
+  } catch (error) {
+    sendSanitizedError(res, error, 'student/v2/knowledge-base')
+  }
+}
+
 export async function chatHistory(req: Request, res: Response): Promise<void> {
   try {
     if (!requireStudentMatch(req, res, req.params.studentId)) return
@@ -116,6 +128,36 @@ export async function chatHistory(req: Request, res: Response): Promise<void> {
     res.json(result)
   } catch (error) {
     sendSanitizedError(res, error, 'student/v2/chat-history')
+  }
+}
+
+export async function chatPost(req: Request, res: Response): Promise<void> {
+  try {
+    const body = req.body || {}
+    const studentId = body.studentId
+    const message = body.message
+    if (!studentId || !message || typeof message !== 'string') {
+      res.status(400).json({ error: 'studentId and message are required' })
+      return
+    }
+    if (!requireStudentMatch(req, res, studentId)) return
+    const built = await buildTutorContext(studentId, message, {
+      subject: body.subject,
+      languagePreference: body.languagePreference || 'fr',
+    })
+    if (!built) {
+      res.status(404).json({ error: 'Student not found' })
+      return
+    }
+    const aiResponse = await getTutorChatResponse(message, built.tutorContext)
+    res.json({
+      success: true,
+      response: aiResponse,
+      studentName: built.student.studentName,
+      topic: body.subject || 'general',
+    })
+  } catch (error) {
+    sendSanitizedError(res, error, 'student/v2/chat')
   }
 }
 

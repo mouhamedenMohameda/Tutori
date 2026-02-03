@@ -10,6 +10,7 @@ import {
   plotGraph,
   plotGraphMultiple,
 } from '@/services/miscService'
+import { buildTutorContext, getTutorChatResponse } from '@/services/aiService'
 
 export function verifyStartupAuth(req: Request): boolean {
   const startupSecret = process.env.STARTUP_SECRET
@@ -200,5 +201,45 @@ export async function graphPlotGetHandler(req: Request, res: Response): Promise<
     })
   } catch (error) {
     sendSanitizedError(res, error, 'graph/plot')
+  }
+}
+
+/** POST /chat — generic chat; uses studentId from JWT if role STUDENT */
+export async function chatHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const body = req.body || {}
+    const message = body.message
+    if (!message || typeof message !== 'string') {
+      res.status(400).json({ error: 'message is required' })
+      return
+    }
+    const authHeader = req.headers.authorization
+    if (!authHeader?.startsWith('Bearer ')) {
+      res.status(400).json({
+        error: 'Use POST /api/ai/tutor-chat with Authorization and body: { studentId, message } for student chat',
+      })
+      return
+    }
+    try {
+      const decoded = jwt.verify(authHeader.slice(7), getJWTSecret()) as { role?: string; studentId?: string }
+      if (decoded.role !== 'STUDENT' || !decoded.studentId) {
+        res.status(400).json({
+          error: 'Use POST /api/ai/tutor-chat with studentId and message for student chat',
+        })
+        return
+      }
+      const studentId = decoded.studentId
+      const built = await buildTutorContext(studentId, message, { languagePreference: 'fr' })
+      if (!built) {
+        res.status(404).json({ error: 'Student not found' })
+        return
+      }
+      const aiResponse = await getTutorChatResponse(message, built.tutorContext)
+      res.json({ success: true, response: aiResponse })
+    } catch {
+      res.status(401).json({ error: 'Invalid token' })
+    }
+  } catch (error) {
+    sendSanitizedError(res, error, 'chat')
   }
 }

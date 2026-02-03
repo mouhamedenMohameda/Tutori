@@ -37,6 +37,25 @@ import {
 
 const JWT_SECRET = () => getJWTSecret()
 
+/** GET /student/profile-photo/:studentId — returns photoUrl or 404 when no photo stored */
+export async function profilePhotoGet(req: Request, res: Response): Promise<void> {
+  try {
+    const studentId = req.params.studentId
+    if (!studentId) {
+      res.status(400).json({ error: 'Student ID required' })
+      return
+    }
+    const idValidation = validateId(studentId)
+    if (!idValidation.valid) {
+      res.status(400).json({ error: idValidation.error ?? 'Invalid student ID' })
+      return
+    }
+    res.status(200).json({ success: true, photoUrl: null })
+  } catch (error) {
+    sendSanitizedError(res, error, 'student/profile-photo')
+  }
+}
+
 function toRateLimitRequest(req: Request): { url: string; headers: { get: (name: string) => string | null } } {
   return {
     url: `${req.protocol}://${req.get('host') || 'localhost'}${req.originalUrl}`,

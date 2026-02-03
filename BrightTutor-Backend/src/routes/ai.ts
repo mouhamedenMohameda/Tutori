@@ -7,6 +7,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import {
   studentContext,
+  studentContextGet,
   generateHint,
   translateMathContentHandler,
   generateQuizQuestionsHandler,
@@ -21,6 +22,8 @@ const upload = multer({ storage: multer.memoryStorage() })
 
 // POST /ai/student-context
 router.post('/student-context', studentContext)
+// GET /ai/student-context/:studentId — alias for mobile app
+router.get('/student-context/:studentId', studentContextGet)
 
 // POST /ai/generate-hint
 router.post('/generate-hint', generateHint)

@@ -5,6 +5,7 @@ import { sendSanitizedError } from '@/lib/security/error-sanitizer'
 import { requireRole } from '@/lib/auth-middleware'
 import {
   getProfile,
+  getDashboard,
   studentChat,
   generateReport,
   parentLogin,
@@ -38,6 +39,35 @@ export async function profileHandler(req: Request, res: Response): Promise<void>
     res.json({ success: true, parent: result.parent })
   } catch (error) {
     sendSanitizedError(res, error, 'parent/profile')
+  }
+}
+
+/** GET /parent/profile-photo/:parentId — returns photoUrl or null when no photo stored */
+export async function profilePhotoHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const parentId = req.params.parentId
+    if (!parentId) {
+      res.status(400).json({ error: 'Parent ID required' })
+      return
+    }
+    res.status(200).json({ success: true, data: { photoUrl: null } })
+  } catch (error) {
+    sendSanitizedError(res, error, 'parent/profile-photo')
+  }
+}
+
+export async function dashboardHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const decoded = requireParent(req, res)
+    if (!decoded) return
+    const result = await getDashboard(decoded.parentId)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'parent/dashboard')
   }
 }
 

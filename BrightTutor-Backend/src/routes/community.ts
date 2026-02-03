@@ -1,22 +1,29 @@
 /**
- * Community routes: leaderboard (implemented), others return 503 (disabled)
+ * Community routes: leaderboard, members, messages, search-students, unread-count, mark-as-read, student-classroom-year
  */
 import { Router } from 'express'
 import {
   leaderboardHandler,
-  disabledHandler,
+  membersHandler,
+  searchStudentsHandler,
+  getMessagesHandler,
+  postMessagesHandler,
+  deleteMessageHandler,
+  unreadCountHandler,
+  markAsReadHandler,
+  studentClassroomYearHandler,
 } from '@/controllers/communityController'
 
 const router = Router()
 
 router.get('/leaderboard/:classroomYear', leaderboardHandler)
-router.post('/mark-as-read/:studentId', disabledHandler)
-router.get('/members/:classroomYear', disabledHandler)
-router.get('/messages', disabledHandler)
-router.get('/messages/:classroomYear', disabledHandler)
-router.post('/messages', disabledHandler)
-router.post('/search-students', disabledHandler)
-router.get('/student-classroom-year/:studentId', disabledHandler)
-router.get('/unread-count/:studentId', disabledHandler)
+router.get('/members/:classroomYear', membersHandler)
+router.get('/search-students', searchStudentsHandler)
+router.get('/messages/:classroomYear', getMessagesHandler)
+router.post('/messages', postMessagesHandler)
+router.delete('/messages', deleteMessageHandler)
+router.get('/unread-count/:studentId', unreadCountHandler)
+router.post('/mark-as-read/:studentId', markAsReadHandler)
+router.get('/student-classroom-year/:studentId', studentClassroomYearHandler)
 
 export default router

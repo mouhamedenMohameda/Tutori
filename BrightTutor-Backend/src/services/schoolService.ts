@@ -109,9 +109,13 @@ export async function schoolLogin(
 
 export async function getTeachers(schoolId: string, query: Record<string, unknown>) {
   const { page, limit, skip } = parsePaginationFromExpress(query)
+  const q = typeof query.q === 'string' ? query.q.trim() : ''
+  const where = q
+    ? { schoolId, OR: [{ name: { contains: q, mode: 'insensitive' as const } }, { email: { contains: q, mode: 'insensitive' as const } }] }
+    : { schoolId }
   const [teachers, total] = await Promise.all([
     prisma.teacher.findMany({
-      where: { schoolId },
+      where,
       include: {
         teacherClasses: {
           include: { class: { select: { id: true, className: true, gradeLevel: true } } },
@@ -121,7 +125,7 @@ export async function getTeachers(schoolId: string, query: Record<string, unknow
       take: limit,
       skip,
     }),
-    prisma.teacher.count({ where: { schoolId } }),
+    prisma.teacher.count({ where }),
   ])
   const formattedTeachers = teachers.map((t) => ({
     id: t.id,

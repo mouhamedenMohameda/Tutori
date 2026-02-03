@@ -5,9 +5,11 @@
 import { Router } from 'express'
 import {
   profile,
+  knowledgeBaseGet,
   memoryGet,
   memoryPost,
   chatHistory,
+  chatPost,
   assignments,
   monthlySummary,
 } from '@/controllers/studentV2Controller'
@@ -17,6 +19,9 @@ const router = Router()
 // GET /v2/profile/:studentId
 router.get('/profile/:studentId', profile)
 
+// GET /v2/knowledge-base/:studentId
+router.get('/knowledge-base/:studentId', knowledgeBaseGet)
+
 // GET /v2/memory/:studentId
 router.get('/memory/:studentId', memoryGet)
 
@@ -25,6 +30,9 @@ router.post('/memory/:studentId', memoryPost)
 
 // GET /v2/chat-history/:studentId
 router.get('/chat-history/:studentId', chatHistory)
+
+// POST /v2/chat
+router.post('/chat', chatPost)
 
 // GET /v2/assignments/:studentId
 router.get('/assignments/:studentId', assignments)

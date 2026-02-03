@@ -19,6 +19,23 @@ import {
   getStudentCreatedSchools,
 } from '@/services/platformAdminService'
 
+/** GET /platform-admin/dashboard — aggregate of stats + analytics for mobile app */
+export async function dashboard(req: Request, res: Response): Promise<void> {
+  try {
+    const [statsResult, analyticsResult] = await Promise.all([
+      getStats(),
+      getAnalytics((req.query.period as string) || 'today', req.query.detailed === 'true'),
+    ])
+    res.json({
+      success: true,
+      stats: statsResult.stats,
+      analytics: (analyticsResult as { data?: unknown }).data ?? {},
+    })
+  } catch (error) {
+    sendSanitizedError(res, error, 'platform-admin/dashboard')
+  }
+}
+
 const JWT_SECRET = () => getJWTSecret()
 
 export async function auth(req: Request, res: Response): Promise<void> {

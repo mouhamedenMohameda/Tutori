@@ -14,6 +14,12 @@ import {
   getStudents,
   createStudent,
 } from '@/services/schoolService'
+import {
+  getDashboardStats,
+  getRecentActivity,
+  getClassPerformance,
+  getPendingAssignmentsCount,
+} from '@/services/adminService'
 
 const authRateLimiter = createRateLimiter(rateLimitConfigs.auth)
 
@@ -78,6 +84,59 @@ export async function getTeachersHandler(req: Request, res: Response): Promise<v
     res.json({ success: true, teachers: result.teachers, pagination: result.pagination })
   } catch (error) {
     sendSanitizedError(res, error, 'school/teachers')
+  }
+}
+
+export async function getTeachersSearchHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const q = (req.query.q as string) || ''
+    const result = await getTeachers(auth.schoolId, { q, page: 1, limit: 50 })
+    res.json({ success: true, teachers: result.teachers, pagination: result.pagination })
+  } catch (error) {
+    sendSanitizedError(res, error, 'school/teachers/search')
+  }
+}
+
+export async function getDashboardHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const schoolId = auth.schoolId
+    const [statsResult, pendingCount, recentActivityResult, classPerformanceResult] = await Promise.all([
+      getDashboardStats(schoolId),
+      getPendingAssignmentsCount(schoolId),
+      getRecentActivity(schoolId),
+      getClassPerformance(schoolId),
+    ])
+    const recentStudents = (recentActivityResult as { recentStudents?: Array<{ id: string; name: string; lastActive: Date | string }> }).recentStudents ?? []
+    const classes = (classPerformanceResult as { classes?: unknown }).classes ?? []
+    const stats = {
+      ...(statsResult as { stats?: Record<string, unknown> }).stats,
+      pendingAssignments: pendingCount,
+    }
+    const recentActivity = recentStudents.map((s) => ({
+      id: s.id,
+      type: 'student_login' as const,
+      description: `${s.name} was active`,
+      timestamp: typeof s.lastActive === 'string' ? s.lastActive : (s.lastActive as Date)?.toISOString?.() ?? new Date().toISOString(),
+      user: s.name,
+    }))
+    res.json({ success: true, stats, recentStudents, classes, recentActivity })
+  } catch (error) {
+    sendSanitizedError(res, error, 'school/dashboard')
+  }
+}
+
+export async function getStatsHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireSchoolAdmin(req, res)
+    if (!auth) return
+    const result = await getDashboardStats(auth.schoolId)
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'school/stats')
   }
 }
 

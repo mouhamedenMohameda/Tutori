@@ -62,6 +62,35 @@ export async function getClassById(id: string) {
   return { class: classRecord }
 }
 
+export async function updateClass(
+  schoolId: string,
+  classId: string,
+  data: { className?: string; gradeLevel?: string; academicYear?: string }
+) {
+  const existing = await prisma.class.findFirst({
+    where: { id: classId, schoolId },
+  })
+  if (!existing) return { error: 'Class not found', status: 404 as const }
+  const updated = await prisma.class.update({
+    where: { id: classId },
+    data: {
+      ...(data.className != null && { className: data.className }),
+      ...(data.gradeLevel != null && { gradeLevel: data.gradeLevel }),
+      ...(data.academicYear != null && { academicYear: data.academicYear }),
+    },
+    include: { school: true },
+  })
+  return {
+    class: {
+      id: updated.id,
+      name: updated.className,
+      grade: updated.gradeLevel,
+      academicYear: updated.academicYear,
+      createdAt: updated.createdAt,
+    },
+  }
+}
+
 export async function deleteClassById(classId: string) {
   const classRecord = await prisma.class.findUnique({
     where: { id: classId },
@@ -192,6 +221,16 @@ export async function getDashboardStats(schoolId: string) {
   }
 }
 
+export async function getPendingAssignmentsCount(schoolId: string): Promise<number> {
+  const count = await prisma.assignmentProgress.count({
+    where: {
+      assignment: { schoolId },
+      status: { not: 'completed' },
+    },
+  })
+  return count
+}
+
 export async function getRecentActivity(schoolId: string) {
   const oneDayAgo = new Date()
   oneDayAgo.setDate(oneDayAgo.getDate() - 1)
@@ -310,6 +349,41 @@ export async function getClassPerformance(schoolId: string) {
     (c) => c.students > 0 || classPerformance.length < 3
   )
   return { classes: filtered.slice(0, 5) }
+}
+
+export async function getStudentsSearch(schoolId: string, q: string) {
+  if (!q.trim()) return { students: [] }
+  const searchTerm = q.trim().toLowerCase()
+  const students = await prisma.student.findMany({
+    where: {
+      schoolId,
+      OR: [
+        { studentName: { contains: searchTerm, mode: 'insensitive' } },
+        { username: { contains: searchTerm, mode: 'insensitive' } },
+        { studentId: { contains: searchTerm, mode: 'insensitive' } },
+      ],
+    },
+    include: {
+      class: true,
+      studentParents: { include: { parent: { select: { name: true, username: true } } } },
+    },
+    orderBy: { studentName: 'asc' },
+    take: 50,
+  })
+  return {
+    students: students.map((s) => ({
+      id: s.id,
+      name: s.studentName,
+      studentId: s.studentId,
+      class: s.class?.className ?? 'No Class Assigned',
+      grade: s.class?.gradeLevel ?? 'Unknown Grade',
+      parents: s.studentParents?.map((sp) => ({
+        name: sp.parent.name,
+        username: sp.parent.username,
+      })) ?? [],
+      createdAt: s.createdAt,
+    })),
+  }
 }
 
 export async function getStudents(actualSchoolId: string) {
@@ -461,6 +535,44 @@ export async function createStudent(
   }
 }
 
+export async function updateStudent(
+  schoolId: string,
+  studentId: string,
+  data: { name?: string; grade?: string; classId?: string | null }
+) {
+  const existing = await prisma.student.findFirst({
+    where: { id: studentId, schoolId },
+  })
+  if (!existing) return { error: 'Student not found', status: 404 as const }
+  const updated = await prisma.student.update({
+    where: { id: studentId },
+    data: {
+      ...(data.name != null && { studentName: data.name }),
+      ...(data.grade != null && { grade: data.grade }),
+      ...(data.classId !== undefined && { classId: data.classId }),
+    },
+    include: { class: true },
+  })
+  return {
+    student: {
+      id: updated.id,
+      name: updated.studentName,
+      studentId: updated.studentId,
+      grade: updated.grade,
+      class: updated.class?.className ?? null,
+    },
+  }
+}
+
+export async function deleteStudent(schoolId: string, studentId: string) {
+  const existing = await prisma.student.findFirst({
+    where: { id: studentId, schoolId },
+  })
+  if (!existing) return { error: 'Student not found', status: 404 as const }
+  await prisma.student.delete({ where: { id: studentId } })
+  return { success: true, deletedId: studentId }
+}
+
 export async function getParentsSearch(schoolId: string, q: string) {
   if (!q.trim()) return { parents: [] }
   const parents = await prisma.parent.findMany({
@@ -510,6 +622,45 @@ export async function getParentById(id: string) {
   }
 }
 
+export async function updateParent(
+  schoolId: string,
+  parentId: string,
+  data: { name?: string; email?: string; phone?: string }
+) {
+  const existing = await prisma.parent.findFirst({
+    where: { id: parentId, schoolId },
+  })
+  if (!existing) return { error: 'Parent not found', status: 404 as const }
+  const updated = await prisma.parent.update({
+    where: { id: parentId },
+    data: {
+      ...(data.name != null && { name: data.name }),
+      ...(data.email != null && { email: data.email }),
+      ...(data.phone != null && { phone: data.phone }),
+    },
+    include: { school: true },
+  })
+  return {
+    parent: {
+      id: updated.id,
+      name: updated.name,
+      username: updated.username,
+      email: updated.email,
+      phone: updated.phone,
+    },
+  }
+}
+
+export async function deleteParent(schoolId: string, parentId: string) {
+  const existing = await prisma.parent.findFirst({
+    where: { id: parentId, schoolId },
+  })
+  if (!existing) return { error: 'Parent not found', status: 404 as const }
+  await prisma.studentParent.deleteMany({ where: { parentId } })
+  await prisma.parent.delete({ where: { id: parentId } })
+  return { success: true, deletedId: parentId }
+}
+
 export async function getTeacherById(id: string) {
   const teacher = await prisma.teacher.findUnique({
     where: { id },
@@ -528,6 +679,53 @@ export async function getTeacherById(id: string) {
       classes: teacher.teacherClasses.map((tc) => tc.class.className),
     },
   }
+}
+
+export async function updateTeacher(
+  schoolId: string,
+  teacherId: string,
+  data: { name?: string; email?: string; subjects?: string[]; classIds?: string[] }
+) {
+  const existing = await prisma.teacher.findFirst({
+    where: { id: teacherId, schoolId },
+  })
+  if (!existing) return { error: 'Teacher not found', status: 404 as const }
+  if (data.name != null || data.email != null || data.subjects != null) {
+    await prisma.teacher.update({
+      where: { id: teacherId },
+      data: {
+        ...(data.name != null && { name: data.name }),
+        ...(data.email != null && { email: data.email }),
+        ...(data.subjects != null && { subjects: JSON.stringify(data.subjects) }),
+      },
+    })
+  }
+  if (data.classIds !== undefined) {
+    await prisma.teacherClass.deleteMany({ where: { teacherId } })
+    const validClassIds = data.classIds.filter(
+      (id): id is string => typeof id === 'string' && id.trim() !== ''
+    )
+    const valid = await prisma.class.findMany({
+      where: { id: { in: validClassIds }, schoolId },
+      select: { id: true },
+    })
+    if (valid.length > 0) {
+      await prisma.teacherClass.createMany({
+        data: valid.map((c) => ({ teacherId, classId: c.id })),
+      })
+    }
+  }
+  return getTeacherById(teacherId)
+}
+
+export async function deleteTeacher(schoolId: string, teacherId: string) {
+  const existing = await prisma.teacher.findFirst({
+    where: { id: teacherId, schoolId },
+  })
+  if (!existing) return { error: 'Teacher not found', status: 404 as const }
+  await prisma.teacherClass.deleteMany({ where: { teacherId } })
+  await prisma.teacher.delete({ where: { id: teacherId } })
+  return { success: true, deletedId: teacherId }
 }
 
 export async function migrateDatabase() {

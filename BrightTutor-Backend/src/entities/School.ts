@@ -19,7 +19,7 @@ type StudentAIContext = import('./StudentAIContext').StudentAIContext
 
 @Entity('schools')
 export class School {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
   @Column({ name: 'school_name' })

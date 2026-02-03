@@ -33,6 +33,25 @@ const uploadLessonPlan = multer({
   limits: { fileSize: 25 * 1024 * 1024 },
 }).single('file')
 
+const uploadDirAssignments = path.join(process.cwd(), 'public', 'uploads', 'assignments')
+function ensureAssignmentsDir() {
+  if (!fs.existsSync(uploadDirAssignments)) fs.mkdirSync(uploadDirAssignments, { recursive: true })
+}
+ensureAssignmentsDir()
+const storageAssignmentFile = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    ensureAssignmentsDir()
+    cb(null, uploadDirAssignments)
+  },
+  filename: (_req, file, cb) => {
+    cb(null, `${Date.now()}-${(file.originalname || 'assignment').replace(/[^a-zA-Z0-9.-]/g, '_')}`)
+  },
+})
+const uploadAssignmentFile = multer({
+  storage: storageAssignmentFile,
+  limits: { fileSize: 25 * 1024 * 1024 },
+}).single('file')
+
 interface TeacherPayload {
   teacherId: string
   schoolId: string
@@ -226,8 +245,8 @@ router.get('/curriculum', async (req: Request, res: Response) => {
   }
 })
 
-// GET /teacher/dashboard/stats
-router.get('/dashboard/stats', async (req: Request, res: Response) => {
+// Shared handler for GET /dashboard and GET /dashboard/stats (mobile app calls /dashboard)
+async function teacherDashboardStatsHandler(req: Request, res: Response): Promise<void> {
   try {
     const decoded = requireTeacher(req, res)
     if (!decoded) return
@@ -303,7 +322,12 @@ router.get('/dashboard/stats', async (req: Request, res: Response) => {
   } catch (error) {
     sendSanitizedError(res, error, 'teacher/dashboard/stats')
   }
-})
+}
+
+// GET /teacher/dashboard — alias for mobile app
+router.get('/dashboard', teacherDashboardStatsHandler)
+// GET /teacher/dashboard/stats
+router.get('/dashboard/stats', teacherDashboardStatsHandler)
 
 // GET /teacher/students
 router.get('/students', async (req: Request, res: Response) => {
@@ -346,6 +370,45 @@ router.get('/students', async (req: Request, res: Response) => {
     res.json({ success: true, students: formatted })
   } catch (error) {
     sendSanitizedError(res, error, 'teacher/students')
+  }
+})
+
+// GET /teacher/progress
+router.get('/progress', async (req: Request, res: Response) => {
+  try {
+    const decoded = requireTeacher(req, res)
+    if (!decoded) return
+    const teacherClasses = await prisma.teacherClass.findMany({
+      where: { teacherId: decoded.teacherId },
+      include: { class: { include: { students: { where: { isActive: true } } } } },
+    })
+    const allStudentIds = teacherClasses.flatMap((tc: any) => (tc.class?.students || []).map((s: any) => s.id))
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const [conversationCount, assignmentProgress] = await Promise.all([
+      prisma.aIConversation.count({
+        where: { studentId: { in: allStudentIds }, timestamp: { gte: sevenDaysAgo } },
+      }),
+      prisma.assignmentProgress.groupBy({
+        by: ['status'],
+        where: { studentId: { in: allStudentIds } },
+        _count: { id: true },
+      }),
+    ])
+    const byStatus = Object.fromEntries(assignmentProgress.map((s: any) => [s.status, s._count.id]))
+    res.json({
+      success: true,
+      progress: {
+        totalStudents: allStudentIds.length,
+        totalClasses: teacherClasses.length,
+        conversationsLast7Days: conversationCount,
+        assignmentsNotStarted: byStatus.not_started ?? 0,
+        assignmentsInProgress: byStatus.in_progress ?? 0,
+        assignmentsCompleted: byStatus.completed ?? 0,
+      },
+    })
+  } catch (error) {
+    sendSanitizedError(res, error, 'teacher/progress')
   }
 })
 
@@ -487,6 +550,149 @@ router.get('/assignments', async (req: Request, res: Response) => {
   } catch (error) {
     sendSanitizedError(res, error, 'teacher/assignments')
   }
+})
+
+// PUT /teacher/assignments/:id
+router.put('/assignments/:id', async (req: Request, res: Response) => {
+  try {
+    const decoded = requireTeacher(req, res)
+    if (!decoded) return
+    const assignmentId = req.params.id
+    const assignment = await prisma.assignment.findFirst({
+      where: { id: assignmentId, teacherId: decoded.teacherId },
+    })
+    if (!assignment) return res.status(404).json({ error: 'Assignment not found' })
+    const body = req.body || {}
+    const {
+      title,
+      description,
+      subject,
+      dueDate,
+      dueTime,
+      priority,
+      points,
+      status,
+      assignedClasses,
+    } = body
+    const data: Record<string, unknown> = {}
+    if (title != null) data.title = String(title)
+    if (description != null) data.description = String(description)
+    if (subject != null) data.subject = String(subject)
+    if (dueDate != null) data.dueDate = new Date(typeof dueDate === 'string' ? `${dueDate}T${dueTime || assignment.dueTime || '23:59'}` : dueDate)
+    if (dueTime != null) data.dueTime = String(dueTime)
+    if (priority != null) data.priority = String(priority)
+    if (points != null) data.points = Number(points) || 100
+    if (status != null) data.status = String(status)
+    if (Array.isArray(assignedClasses)) data.assignedClasses = JSON.stringify(assignedClasses)
+    const updated = await prisma.assignment.update({
+      where: { id: assignmentId },
+      data: data as any,
+      include: { class: { select: { className: true } } },
+    })
+    res.json({
+      success: true,
+      assignment: {
+        id: updated.id,
+        title: updated.title,
+        description: updated.description,
+        subject: updated.subject,
+        dueDate: updated.dueDate.toISOString().split('T')[0],
+        dueTime: updated.dueTime,
+        priority: updated.priority,
+        points: updated.points,
+        status: updated.status,
+        assignedClasses: JSON.parse(updated.assignedClasses || '[]'),
+      },
+    })
+  } catch (error) {
+    sendSanitizedError(res, error, 'teacher/assignments/:id')
+  }
+})
+
+// DELETE /teacher/assignments/:id
+router.delete('/assignments/:id', async (req: Request, res: Response) => {
+  try {
+    const decoded = requireTeacher(req, res)
+    if (!decoded) return
+    const assignmentId = req.params.id
+    const assignment = await prisma.assignment.findFirst({
+      where: { id: assignmentId, teacherId: decoded.teacherId },
+    })
+    if (!assignment) return res.status(404).json({ error: 'Assignment not found' })
+    await prisma.assignment.delete({ where: { id: assignmentId } })
+    res.json({ success: true })
+  } catch (error) {
+    sendSanitizedError(res, error, 'teacher/assignments/:id')
+  }
+})
+
+// PUT /teacher/assignments — multipart: assignmentId (required), file (optional), title, description, subject, dueDate, dueTime, priority, points, status, assignedClasses
+router.put('/assignments', (req: Request, res: Response) => {
+  uploadAssignmentFile(req, res, async (err) => {
+    if (err) {
+      return sendSanitizedError(res, err, 'teacher/assignments')
+    }
+    try {
+      const decoded = requireTeacher(req, res)
+      if (!decoded) return
+      const body = req.body || {}
+      const assignmentId = body.assignmentId || body.id
+      if (!assignmentId || typeof assignmentId !== 'string') {
+        return res.status(400).json({ error: 'assignmentId (or id) is required' })
+      }
+      const idValidation = validateId(assignmentId)
+      if (!idValidation.valid) {
+        return res.status(400).json({ error: idValidation.error || 'Invalid assignment ID' })
+      }
+      const assignment = await prisma.assignment.findFirst({
+        where: { id: assignmentId, teacherId: decoded.teacherId },
+      })
+      if (!assignment) return res.status(404).json({ error: 'Assignment not found' })
+      const file = (req as any).file
+      const data: Record<string, unknown> = {}
+      if (body.title != null) data.title = String(body.title)
+      if (body.description != null) data.description = String(body.description)
+      if (body.subject != null) data.subject = String(body.subject)
+      if (body.dueDate != null) {
+        const dueTime = body.dueTime ?? assignment.dueTime ?? '23:59'
+        data.dueDate = new Date(typeof body.dueDate === 'string' ? `${body.dueDate}T${dueTime}` : body.dueDate)
+      }
+      if (body.dueTime != null) data.dueTime = String(body.dueTime)
+      if (body.priority != null) data.priority = String(body.priority)
+      if (body.points != null) data.points = Number(body.points) || 100
+      if (body.status != null) data.status = String(body.status)
+      if (Array.isArray(body.assignedClasses)) data.assignedClasses = JSON.stringify(body.assignedClasses)
+      if (file) {
+        data.fileName = file.originalname || file.filename
+        data.fileSize = file.size
+        data.fileType = file.mimetype || 'application/octet-stream'
+      }
+      const updated = await prisma.assignment.update({
+        where: { id: assignmentId },
+        data: data as any,
+      })
+      res.json({
+        success: true,
+        assignment: {
+          id: updated.id,
+          title: updated.title,
+          description: updated.description,
+          subject: updated.subject,
+          dueDate: updated.dueDate.toISOString().split('T')[0],
+          dueTime: updated.dueTime,
+          priority: updated.priority,
+          points: updated.points,
+          status: updated.status,
+          assignedClasses: JSON.parse(updated.assignedClasses || '[]'),
+          fileName: updated.fileName,
+          fileSize: updated.fileSize,
+          fileType: updated.fileType,
+        },
+      })
+    } catch (error) {
+      sendSanitizedError(res, error, 'teacher/assignments')
+    }
+  })
 })
 
 // POST /teacher/assignments — JSON only (no file upload)

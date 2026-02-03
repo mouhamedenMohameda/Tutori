@@ -52,6 +52,42 @@ export async function getProfile(parentId: string) {
   }
 }
 
+export async function getDashboard(parentId: string) {
+  const parent = await prisma.parent.findUnique({
+    where: { id: parentId },
+    include: {
+      school: { select: { schoolName: true } },
+      studentParents: {
+        include: {
+          student: {
+            select: {
+              id: true,
+              studentName: true,
+              grade: true,
+              class: { select: { className: true } },
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!parent) return { error: 'Parent not found', status: 404 as const }
+  const children = (parent.studentParents || []).map((sp) => {
+    const s = sp.student
+    return {
+      id: s.id,
+      name: s.studentName,
+      grade: s.grade,
+      class: (s as { class?: { className: string } }).class?.className ?? null,
+    }
+  })
+  return {
+    parent: { id: parent.id, name: parent.name, schoolName: (parent as { school?: { schoolName: string } }).school?.schoolName },
+    children,
+    recentActivity: [],
+  }
+}
+
 function extractSubjectFromMessages(messages: string[]): string[] {
   const subjects = ['Mathematics', 'Mathématiques', 'Math', 'Science', 'Sciences', 'Physics', 'Physique']
   const mentioned = new Set<string>()

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
+import { prisma } from '@/lib/prisma'
 import { getJWTSecret } from '@/lib/security/secrets'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
 import { getSubjects } from '@/services/schoolSubjectsService'
@@ -35,6 +36,38 @@ export async function getSubjectsHandler(req: Request, res: Response): Promise<v
     res.json({ success: true, subjects: result.subjects })
   } catch (error) {
     sendSanitizedError(res, error, 'school/subjects')
+  }
+}
+
+export async function getSubjectByIdHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const schoolId = getSchoolIdFromToken(req, res, true)
+    if (!schoolId) return
+    const subjectId = req.params.subjectId
+    if (!subjectId) {
+      res.status(400).json({ error: 'Subject ID is required' })
+      return
+    }
+    const subject = await prisma.subject.findFirst({
+      where: { id: subjectId, schoolId },
+    })
+    if (!subject) {
+      res.status(404).json({ error: 'Subject not found' })
+      return
+    }
+    res.json({
+      success: true,
+      subject: {
+        id: subject.id,
+        name: subject.name,
+        description: subject.description ?? '',
+        subjectType: subject.subjectType ?? '',
+        language: subject.language ?? 'French',
+        createdAt: subject.createdAt.toISOString(),
+      },
+    })
+  } catch (error) {
+    sendSanitizedError(res, error, 'school/subjects/:id')
   }
 }
 

@@ -2,7 +2,18 @@ import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { getJWTSecret } from '@/lib/security/secrets'
 import { sendSanitizedError } from '@/lib/security/error-sanitizer'
-import { getLeaderboard } from '@/services/communityService'
+import { validateId } from '@/lib/security/validation'
+import {
+  getLeaderboard,
+  getMembers,
+  searchStudents,
+  getMessages,
+  sendMessage,
+  deleteMessage,
+  getUnreadCount,
+  markAsRead,
+  getStudentClassroomYear,
+} from '@/services/communityService'
 
 const JWT_SECRET = () => getJWTSecret()
 
@@ -57,6 +68,166 @@ export async function leaderboardHandler(
     res.json({ success: true, data: result.data })
   } catch (error) {
     sendSanitizedError(res, error, 'community/leaderboard')
+  }
+}
+
+export async function membersHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireStudent(req, res)
+    if (!auth) return
+    const classroomYear = decodeURIComponent(req.params.classroomYear)
+    const result = await getMembers(classroomYear)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'community/members')
+  }
+}
+
+export async function searchStudentsHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireStudent(req, res)
+    if (!auth) return
+    const result = await searchStudents()
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'community/search-students')
+  }
+}
+
+export async function getMessagesHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireStudent(req, res)
+    if (!auth) return
+    const classroomYear = decodeURIComponent(req.params.classroomYear)
+    const result = await getMessages(classroomYear)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'community/messages')
+  }
+}
+
+export async function postMessagesHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireStudent(req, res)
+    if (!auth) return
+    const body = req.body || {}
+    const { studentId, classroomYear, message, messageType, replyToMessageId } = body
+    if (auth.studentId !== studentId) {
+      res.status(403).json({ error: 'Forbidden' })
+      return
+    }
+    if (!message || typeof message !== 'string') {
+      res.status(400).json({ error: 'message is required' })
+      return
+    }
+    const result = await sendMessage({
+      studentId,
+      classroomYear: classroomYear || '',
+      message,
+      messageType,
+      replyToMessageId,
+    })
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'community/messages')
+  }
+}
+
+export async function deleteMessageHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireStudent(req, res)
+    if (!auth) return
+    const body = req.body || {}
+    const { messageId, studentId } = body
+    if (!messageId || auth.studentId !== studentId) {
+      res.status(400).json({ error: 'messageId and studentId required' })
+      return
+    }
+    const result = await deleteMessage(messageId, studentId)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json(result)
+  } catch (error) {
+    sendSanitizedError(res, error, 'community/messages-delete')
+  }
+}
+
+export async function unreadCountHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireStudent(req, res)
+    if (!auth) return
+    const studentId = req.params.studentId
+    if (auth.studentId !== studentId) {
+      res.status(403).json({ error: 'Forbidden' })
+      return
+    }
+    const result = await getUnreadCount(studentId)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'community/unread-count')
+  }
+}
+
+export async function markAsReadHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireStudent(req, res)
+    if (!auth) return
+    const studentId = req.params.studentId
+    if (auth.studentId !== studentId) {
+      res.status(403).json({ error: 'Forbidden' })
+      return
+    }
+    const result = await markAsRead(studentId)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'community/mark-as-read')
+  }
+}
+
+export async function studentClassroomYearHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const auth = requireStudent(req, res)
+    if (!auth) return
+    const studentId = req.params.studentId
+    if (auth.studentId !== studentId) {
+      res.status(403).json({ error: 'Forbidden' })
+      return
+    }
+    const v = validateId(studentId)
+    if (!v.valid) {
+      res.status(400).json({ error: v.error ?? 'Invalid student ID' })
+      return
+    }
+    const result = await getStudentClassroomYear(studentId)
+    if ('error' in result) {
+      res.status((result as { status: number }).status).json({ error: result.error })
+      return
+    }
+    res.json({ success: true, ...result })
+  } catch (error) {
+    sendSanitizedError(res, error, 'community/student-classroom-year')
   }
 }
 

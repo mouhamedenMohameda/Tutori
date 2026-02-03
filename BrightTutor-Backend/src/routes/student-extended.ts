@@ -27,6 +27,7 @@ import {
   unlockNextSectionHandler,
   pushTokenPost,
   pushTokenDelete,
+  profilePhotoGet,
 } from '@/controllers/studentExtendedController'
 
 const router = Router()
@@ -93,5 +94,8 @@ router.post('/push-token', pushTokenPost)
 
 // DELETE /push-token
 router.delete('/push-token', pushTokenDelete)
+
+// GET /profile-photo/:studentId
+router.get('/profile-photo/:studentId', profilePhotoGet)
 
 export default router

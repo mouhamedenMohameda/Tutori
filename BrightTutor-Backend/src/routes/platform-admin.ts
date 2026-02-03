@@ -4,6 +4,7 @@
 import { Router } from 'express'
 import {
   auth,
+  dashboard,
   analytics,
   analyticsDebug,
   schoolsList,
@@ -21,6 +22,9 @@ const router = Router()
 
 // POST /platform-admin/auth
 router.post('/auth', auth)
+
+// GET /platform-admin/dashboard — aggregate for mobile app
+router.get('/dashboard', dashboard)
 
 // GET /platform-admin/analytics
 router.get('/analytics', analytics)
