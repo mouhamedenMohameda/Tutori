@@ -1,0 +1,35 @@
+4. Implémentées mais non connectées (écart path / méthode / contrat)
+Appel mobile	Backend	Problème
+GET /api/ai/student-context/:studentId	POST /api/ai/student-context (body)	Méthode + forme différente (GET avec id dans l’URL vs POST avec body).
+PATCH /api/student/language-preference/:studentId	PUT /api/student/language-preference/:studentId	Méthode différente : adapter le client (PUT) ou ajouter PATCH côté backend.
+GET /api/teacher/dashboard	GET /api/teacher/dashboard/stats	Path différent : utiliser /api/teacher/dashboard/stats dans l’app ou ajouter un alias /api/teacher/dashboard côté backend.
+GET /api/admin/dashboard	Pas de GET /api/admin/dashboard	Backend a seulement /dashboard/stats, /dashboard/recent-activity, /dashboard/class-performance. Adapter l’app pour appeler ces 3 ou ajouter un agrégat /dashboard.
+GET /api/platform-admin/dashboard	Pas de /dashboard	Backend a /stats, /analytics. Adapter l’app vers /api/platform-admin/stats (ou /analytics) ou ajouter /dashboard.
+
+
+5. Non implémentées côté backend
+Méthode	Endpoint utilisé par l’app	Remarque
+GET	/api/student/v2/knowledge-base/:studentId	Aucune route équivalente dans le backend.
+POST	/api/student/v2/chat	L’app utilise surtout /api/ai/tutor-chat pour le chat ; ce POST v2/chat n’a pas d’équivalent backend.
+GET	/api/student/profile-photo/:studentId	Pas de route “profile-photo” dans le backend.
+GET	/api/parent/dashboard	Parent n’a que profile, student-chat, generate-report, login.
+GET	/api/parent/profile-photo/:parentId	Pas de route “profile-photo” parent.
+GET	/api/school/dashboard	School n’a pas de route /dashboard.
+GET	/api/school/stats	Pas de route /stats sous school.
+GET	/api/school/teachers/search	School a GET /teachers (liste/pagination) mais pas de recherche par q.
+GET	/api/school/subjects/:subjectId	School n’a que GET /subjects (liste), pas GET par id.
+PUT	/api/admin/classes/:id	Admin a GET/DELETE /classes/:id et POST /classes, pas de PUT.
+PUT	/api/admin/students/:id	Pas de PUT student dans admin.
+PUT	/api/admin/parents/:id	Pas de PUT parent dans admin.
+PUT	/api/admin/teachers/:id	Pas de PUT teacher dans admin.
+DELETE	/api/admin/students/:id	Pas de DELETE student dans admin.
+DELETE	/api/admin/parents/:id	Pas de DELETE parent dans admin.
+DELETE	/api/admin/teachers/:id	Pas de DELETE teacher dans admin.
+GET	/api/teacher/progress	Aucune route /api/teacher/progress dans teacher-extended.
+PUT	/api/teacher/assignments/:id	Teacher-extended a POST/remove-file/delete, pas de PUT par id (à confirmer dans le fichier).
+POST	/api/chat
+
+
+Routes community suivantes sont appelées par l’app mais renvoient 503 (disabled) côté backend :
+/api/community/members/:classroomYear, /api/community/search-students, /api/community/messages, /api/community/unread-count/:studentId, /api/community/mark-as-read/:studentId, /api/community/student-classroom-year/:studentId.
+Donc implémentées en partie (handlers présents) mais non connectées fonctionnellement (désactivées).
