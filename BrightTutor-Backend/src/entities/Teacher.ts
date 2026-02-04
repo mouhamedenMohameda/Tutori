@@ -4,22 +4,22 @@ import { TeacherClass } from './TeacherClass'
 
 @Entity('teachers')
 export class Teacher {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'teacher_name' })
+  @Column({ type: 'varchar', name: 'teacher_name' })
   name: string
 
-  @Column({ name: 'teacher_email' })
+  @Column({ type: 'varchar', name: 'teacher_email' })
   email: string
 
-  @Column({ name: 'teacher_password' })
+  @Column({ type: 'varchar', name: 'teacher_password' })
   password: string
 
-  @Column({ name: 'school_id' })
+  @Column({ type: 'uuid', name: 'school_id' })
   schoolId: string
 
-  @Column({ default: '[]' })
+  @Column({ type: 'text', default: '[]' })
   subjects: string
 
   @CreateDateColumn({ name: 'created_at' })

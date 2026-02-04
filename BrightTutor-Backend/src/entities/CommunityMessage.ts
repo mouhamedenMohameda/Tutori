@@ -3,25 +3,25 @@ import { Student } from './Student'
 
 @Entity('community_messages')
 export class CommunityMessage {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'student_id' })
+  @Column({ type: 'uuid', name: 'student_id' })
   studentId: string
 
-  @Column({ name: 'classroom_year' })
+  @Column({ type: 'varchar', name: 'classroom_year' })
   classroomYear: string
 
-  @Column()
+  @Column({ type: 'text' })
   message: string
 
-  @Column({ name: 'message_type', default: 'TEXT' })
+  @Column({ type: 'varchar', name: 'message_type', default: 'TEXT' })
   messageType: string
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   timestamp: Date
 
-  @Column({ name: 'reply_to_message_id', nullable: true })
+  @Column({ type: 'uuid', name: 'reply_to_message_id', nullable: true })
   replyToMessageId: string | null
 
   @ManyToOne(() => Student, { onDelete: 'CASCADE' })

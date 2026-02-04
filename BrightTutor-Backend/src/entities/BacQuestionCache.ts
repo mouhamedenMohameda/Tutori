@@ -2,19 +2,19 @@ import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } fro
 
 @Entity('bac_question_cache')
 export class BacQuestionCache {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'exercise_id' })
+  @Column({ type: 'varchar', name: 'exercise_id' })
   exerciseId: string
 
-  @Column({ name: 'part_id' })
+  @Column({ type: 'varchar', name: 'part_id' })
   partId: string
 
-  @Column()
+  @Column({ type: 'text' })
   question: string
 
-  @Column({ default: true })
+  @Column({ type: 'boolean', default: true })
   validated: boolean
 
   @CreateDateColumn({ name: 'created_at' })

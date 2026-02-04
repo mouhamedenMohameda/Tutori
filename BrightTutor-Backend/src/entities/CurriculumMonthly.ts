@@ -4,10 +4,10 @@ import { SchoolAdmin } from './SchoolAdmin'
 
 @Entity('curriculum_monthly')
 export class CurriculumMonthly {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'class_id' })
+  @Column({ type: 'uuid', name: 'class_id' })
   classId: string
 
   @Column({ type: 'int' })
@@ -16,13 +16,13 @@ export class CurriculumMonthly {
   @Column({ type: 'int' })
   year: number
 
-  @Column({ default: '[]' })
+  @Column({ type: 'text', default: '[]' })
   subjects: string
 
-  @Column({ name: 'learning_objectives' })
+  @Column({ type: 'text', name: 'learning_objectives' })
   learningObjectives: string
 
-  @Column({ name: 'uploaded_by' })
+  @Column({ type: 'uuid', name: 'uploaded_by' })
   uploadedBy: string
 
   @Column({ name: 'uploaded_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

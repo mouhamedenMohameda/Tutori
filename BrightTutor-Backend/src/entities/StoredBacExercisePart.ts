@@ -3,28 +3,28 @@ import { StoredBacExercise } from './StoredBacExercise'
 
 @Entity('stored_bac_exercise_parts')
 export class StoredBacExercisePart {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'exercise_id' })
+  @Column({ type: 'uuid', name: 'exercise_id' })
   exerciseId: string
 
-  @Column({ name: 'part_id' })
+  @Column({ type: 'varchar', name: 'part_id' })
   partId: string
 
-  @Column()
+  @Column({ type: 'text' })
   question: string
 
-  @Column({ default: 'calcul' })
+  @Column({ type: 'varchar', default: 'calcul' })
   type: string
 
-  @Column({ default: 'Moyen' })
+  @Column({ type: 'varchar', default: 'Moyen' })
   difficulty: string
 
-  @Column({ default: true })
+  @Column({ type: 'boolean', default: true })
   validated: boolean
 
-  @Column({ name: 'order_index' })
+  @Column({ type: 'int', name: 'order_index' })
   orderIndex: number
 
   @CreateDateColumn({ name: 'created_at' })

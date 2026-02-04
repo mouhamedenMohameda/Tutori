@@ -3,25 +3,25 @@ import { StoredBacExercisePart } from './StoredBacExercisePart'
 
 @Entity('stored_bac_exercises')
 export class StoredBacExercise {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'chapter_id' })
+  @Column({ type: 'varchar', name: 'chapter_id' })
   chapterId: string
 
-  @Column({ name: 'exercise_id' })
+  @Column({ type: 'varchar', name: 'exercise_id' })
   exerciseId: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   title: string
 
-  @Column()
+  @Column({ type: 'text' })
   description: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   subject: string
 
-  @Column({ default: 'Moyen' })
+  @Column({ type: 'varchar', default: 'Moyen' })
   difficulty: string
 
   @Column({ type: 'simple-array', default: '' })
@@ -33,19 +33,19 @@ export class StoredBacExercise {
   @Column({ name: 'part_sequence', type: 'simple-array', default: '' })
   partSequence: string[]
 
-  @Column({ name: 'enonce_complet', nullable: true })
+  @Column({ type: 'text', name: 'enonce_complet', nullable: true })
   enonceComplet: string | null
 
   @Column({ name: 'generated_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   generatedAt: Date
 
-  @Column({ name: 'generated_by', nullable: true })
+  @Column({ type: 'varchar', name: 'generated_by', nullable: true })
   generatedBy: string | null
 
-  @Column({ default: 1 })
+  @Column({ type: 'int', default: 1 })
   version: number
 
-  @Column({ name: 'is_active', default: true })
+  @Column({ type: 'boolean', name: 'is_active', default: true })
   isActive: boolean
 
   @CreateDateColumn({ name: 'created_at' })

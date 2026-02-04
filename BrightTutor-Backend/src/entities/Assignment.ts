@@ -5,55 +5,55 @@ import { Class } from './Class'
 
 @Entity('assignments')
 export class Assignment {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'teacher_id' })
+  @Column({ type: 'uuid', name: 'teacher_id' })
   teacherId: string
 
-  @Column({ name: 'school_id' })
+  @Column({ type: 'uuid', name: 'school_id' })
   schoolId: string
 
-  @Column({ name: 'class_id' })
+  @Column({ type: 'uuid', name: 'class_id' })
   classId: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   title: string
 
-  @Column()
+  @Column({ type: 'text' })
   description: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   subject: string
 
   @Column({ name: 'due_date', type: 'timestamp' })
   dueDate: Date
 
-  @Column({ name: 'due_time' })
+  @Column({ type: 'varchar', name: 'due_time' })
   dueTime: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   priority: string
 
-  @Column({ default: 100 })
+  @Column({ type: 'int', default: 100 })
   points: number
 
-  @Column({ default: 'published' })
+  @Column({ type: 'varchar', default: 'published' })
   status: string
 
-  @Column({ name: 'assigned_classes', default: '[]' })
+  @Column({ type: 'text', name: 'assigned_classes', default: '[]' })
   assignedClasses: string
 
-  @Column({ name: 'file_name', nullable: true })
+  @Column({ type: 'varchar', name: 'file_name', nullable: true })
   fileName: string | null
 
   @Column({ name: 'file_size', type: 'int', nullable: true })
   fileSize: number | null
 
-  @Column({ name: 'file_type', nullable: true })
+  @Column({ type: 'varchar', name: 'file_type', nullable: true })
   fileType: string | null
 
-  @Column({ name: 'teaching_instructions', nullable: true })
+  @Column({ type: 'text', name: 'teaching_instructions', nullable: true })
   teachingInstructions: string | null
 
   @CreateDateColumn({ name: 'created_at' })

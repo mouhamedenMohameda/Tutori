@@ -3,10 +3,10 @@ import { Student } from './Student'
 
 @Entity('student_sessions')
 export class StudentSession {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'student_id' })
+  @Column({ type: 'uuid', name: 'student_id' })
   studentId: string
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -18,22 +18,22 @@ export class StudentSession {
   @Column({ name: 'session_end', type: 'timestamp', nullable: true })
   sessionEnd: Date | null
 
-  @Column({ name: 'total_duration', default: 0 })
+  @Column({ type: 'int', name: 'total_duration', default: 0 })
   totalDuration: number
 
-  @Column({ name: 'chat_time', default: 0 })
+  @Column({ type: 'int', name: 'chat_time', default: 0 })
   chatTime: number
 
-  @Column({ name: 'map_time', default: 0 })
+  @Column({ type: 'int', name: 'map_time', default: 0 })
   mapTime: number
 
-  @Column({ name: 'rankings_time', default: 0 })
+  @Column({ type: 'int', name: 'rankings_time', default: 0 })
   rankingsTime: number
 
-  @Column({ name: 'community_time', default: 0 })
+  @Column({ type: 'int', name: 'community_time', default: 0 })
   communityTime: number
 
-  @Column({ name: 'profile_time', default: 0 })
+  @Column({ type: 'int', name: 'profile_time', default: 0 })
   profileTime: number
 
   @CreateDateColumn({ name: 'created_at' })

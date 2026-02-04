@@ -4,16 +4,16 @@ import { Class } from './Class'
 
 @Entity('teacher_classes')
 export class TeacherClass {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'teacher_id' })
+  @Column({ type: 'uuid', name: 'teacher_id' })
   teacherId: string
 
-  @Column({ name: 'class_id' })
+  @Column({ type: 'uuid', name: 'class_id' })
   classId: string
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   subject: string | null
 
   @ManyToOne(() => Teacher, { onDelete: 'CASCADE' })

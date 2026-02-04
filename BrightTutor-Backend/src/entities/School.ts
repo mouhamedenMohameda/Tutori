@@ -22,25 +22,25 @@ export class School {
   @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'school_name' })
+  @Column({ type: 'varchar', name: 'school_name' })
   schoolName: string
 
-  @Column({ name: 'domain_name', nullable: true, unique: true })
+  @Column({ type: 'varchar', name: 'domain_name', nullable: true, unique: true })
   domainName: string | null
 
-  @Column({ name: 'contact_email' })
+  @Column({ type: 'varchar', name: 'contact_email' })
   contactEmail: string
 
-  @Column({ name: 'contact_phone', nullable: true })
+  @Column({ type: 'varchar', name: 'contact_phone', nullable: true })
   contactPhone: string | null
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   wilaya: string | null
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   address: string | null
 
-  @Column({ name: 'application_status', default: 'PENDING' })
+  @Column({ type: 'varchar', name: 'application_status', default: 'PENDING' })
   applicationStatus: string
 
   @Column({ name: 'application_date', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -49,16 +49,16 @@ export class School {
   @Column({ name: 'approved_date', type: 'timestamp', nullable: true })
   approvedDate: Date | null
 
-  @Column({ name: 'approved_by', nullable: true })
+  @Column({ type: 'varchar', name: 'approved_by', nullable: true })
   approvedBy: string | null
 
-  @Column({ name: 'rejection_reason', nullable: true })
+  @Column({ type: 'text', name: 'rejection_reason', nullable: true })
   rejectionReason: string | null
 
-  @Column({ name: 'subscription_plan', default: 'TRIAL' })
+  @Column({ type: 'varchar', name: 'subscription_plan', default: 'TRIAL' })
   subscriptionPlan: string
 
-  @Column({ name: 'subscription_status', default: 'PENDING' })
+  @Column({ type: 'varchar', name: 'subscription_status', default: 'PENDING' })
   subscriptionStatus: string
 
   @Column({ name: 'subscription_start', type: 'timestamp', nullable: true })
@@ -70,25 +70,25 @@ export class School {
   @Column({ name: 'pricing_mru', type: 'int', nullable: true })
   pricingMRU: number | null
 
-  @Column({ name: 'payment_confirmed', default: false })
+  @Column({ type: 'boolean', name: 'payment_confirmed', default: false })
   paymentConfirmed: boolean
 
-  @Column({ name: 'admin_user_id' })
+  @Column({ type: 'uuid', name: 'admin_user_id' })
   adminUserId: string
 
-  @Column({ name: 'admin_name' })
+  @Column({ type: 'varchar', name: 'admin_name' })
   adminName: string
 
-  @Column({ name: 'admin_email', unique: true })
+  @Column({ type: 'varchar', name: 'admin_email', unique: true })
   adminEmail: string
 
-  @Column({ name: 'admin_password' })
+  @Column({ type: 'varchar', name: 'admin_password' })
   adminPassword: string
 
-  @Column({ name: 'max_students', default: 10 })
+  @Column({ type: 'int', name: 'max_students', default: 10 })
   maxStudents: number
 
-  @Column({ name: 'max_teachers', default: 2 })
+  @Column({ type: 'int', name: 'max_teachers', default: 2 })
   maxTeachers: number
 
   @CreateDateColumn({ name: 'created_at' })

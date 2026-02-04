@@ -4,13 +4,13 @@ import { Parent } from './Parent'
 
 @Entity('student_parents')
 export class StudentParent {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'student_id' })
+  @Column({ type: 'uuid', name: 'student_id' })
   studentId: string
 
-  @Column({ name: 'parent_id' })
+  @Column({ type: 'uuid', name: 'parent_id' })
   parentId: string
 
   @ManyToOne(() => Student, { onDelete: 'CASCADE' })

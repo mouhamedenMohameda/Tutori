@@ -2,22 +2,22 @@ import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } fro
 
 @Entity('bac_course_cache')
 export class BacCourseCache {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'exercise_id' })
+  @Column({ type: 'varchar', name: 'exercise_id' })
   exerciseId: string
 
-  @Column({ name: 'course_content' })
+  @Column({ type: 'text', name: 'course_content' })
   courseContent: string
 
   @Column({ name: 'average_rating', type: 'float', default: 0 })
   averageRating: number
 
-  @Column({ name: 'total_ratings', default: 0 })
+  @Column({ type: 'int', name: 'total_ratings', default: 0 })
   totalRatings: number
 
-  @Column({ default: '[]' })
+  @Column({ type: 'text', default: '[]' })
   ratings: string
 
   @CreateDateColumn({ name: 'created_at' })

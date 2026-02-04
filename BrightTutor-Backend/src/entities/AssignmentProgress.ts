@@ -4,34 +4,34 @@ import { Student } from './Student'
 
 @Entity('assignment_progress')
 export class AssignmentProgress {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'assignment_id' })
+  @Column({ type: 'uuid', name: 'assignment_id' })
   assignmentId: string
 
-  @Column({ name: 'student_id' })
+  @Column({ type: 'uuid', name: 'student_id' })
   studentId: string
 
-  @Column({ default: 'not_started' })
+  @Column({ type: 'varchar', default: 'not_started' })
   status: string
 
-  @Column({ name: 'time_spent', default: 0 })
+  @Column({ type: 'int', name: 'time_spent', default: 0 })
   timeSpent: number
 
-  @Column({ name: 'questions_asked', default: 0 })
+  @Column({ type: 'int', name: 'questions_asked', default: 0 })
   questionsAsked: number
 
   @Column({ name: 'last_worked_on', type: 'timestamp', nullable: true })
   lastWorkedOn: Date | null
 
-  @Column({ name: 'completion_percent', default: 0 })
+  @Column({ type: 'int', name: 'completion_percent', default: 0 })
   completionPercent: number
 
-  @Column({ name: 'struggling_topics', default: '[]' })
+  @Column({ type: 'text', name: 'struggling_topics', default: '[]' })
   strugglingTopics: string
 
-  @Column({ name: 'mastered_topics', default: '[]' })
+  @Column({ type: 'text', name: 'mastered_topics', default: '[]' })
   masteredTopics: string
 
   @CreateDateColumn({ name: 'created_at' })

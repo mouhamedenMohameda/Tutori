@@ -3,22 +3,22 @@ import { Student } from './Student'
 
 @Entity('student_push_tokens')
 export class StudentPushToken {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'student_id' })
+  @Column({ type: 'uuid', name: 'student_id' })
   studentId: string
 
-  @Column({ name: 'expo_push_token' })
+  @Column({ type: 'varchar', name: 'expo_push_token' })
   expoPushToken: string
 
-  @Column({ default: 'unknown' })
+  @Column({ type: 'varchar', default: 'unknown' })
   platform: string
 
-  @Column({ name: 'device_id', default: 'default' })
+  @Column({ type: 'varchar', name: 'device_id', default: 'default' })
   deviceId: string
 
-  @Column({ name: 'is_active', default: true })
+  @Column({ type: 'boolean', name: 'is_active', default: true })
   isActive: boolean
 
   @CreateDateColumn({ name: 'created_at' })

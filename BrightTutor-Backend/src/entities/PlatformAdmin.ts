@@ -2,22 +2,22 @@ import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } fro
 
 @Entity('platform_admins')
 export class PlatformAdmin {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', unique: true })
   email: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   password: string
 
-  @Column({ name: 'full_name' })
+  @Column({ type: 'varchar', name: 'full_name' })
   fullName: string
 
-  @Column({ default: 'PLATFORM_ADMIN' })
+  @Column({ type: 'varchar', default: 'PLATFORM_ADMIN' })
   role: string
 
-  @Column({ name: 'is_active', default: true })
+  @Column({ type: 'boolean', name: 'is_active', default: true })
   isActive: boolean
 
   @Column({ name: 'last_login', type: 'timestamp', nullable: true })

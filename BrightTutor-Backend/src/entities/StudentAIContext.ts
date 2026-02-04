@@ -5,34 +5,34 @@ import { Assignment } from './Assignment'
 
 @Entity('student_ai_contexts')
 export class StudentAIContext {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'student_id' })
+  @Column({ type: 'uuid', name: 'student_id' })
   studentId: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   subject: string
 
-  @Column({ name: 'school_id' })
+  @Column({ type: 'uuid', name: 'school_id' })
   schoolId: string
 
-  @Column({ name: 'assignment_id', nullable: true })
+  @Column({ type: 'uuid', name: 'assignment_id', nullable: true })
   assignmentId: string | null
 
-  @Column({ name: 'file_name', nullable: true })
+  @Column({ type: 'varchar', name: 'file_name', nullable: true })
   fileName: string | null
 
-  @Column({ name: 'file_type', nullable: true })
+  @Column({ type: 'varchar', name: 'file_type', nullable: true })
   fileType: string | null
 
-  @Column({ name: 'teaching_instructions', nullable: true })
+  @Column({ type: 'text', name: 'teaching_instructions', nullable: true })
   teachingInstructions: string | null
 
-  @Column({ name: 'personalized_notes', nullable: true })
+  @Column({ type: 'text', name: 'personalized_notes', nullable: true })
   personalizedNotes: string | null
 
-  @Column({ name: 'learning_style', nullable: true })
+  @Column({ type: 'varchar', name: 'learning_style', nullable: true })
   learningStyle: string | null
 
   @Column({ name: 'difficulty_level', type: 'int', nullable: true })

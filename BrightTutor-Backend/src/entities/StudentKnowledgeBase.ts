@@ -3,13 +3,13 @@ import { Student } from './Student'
 
 @Entity('student_knowledge_base')
 export class StudentKnowledgeBase {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'student_id', unique: true })
+  @Column({ type: 'uuid', name: 'student_id', unique: true })
   studentId: string
 
-  @Column({ default: '' })
+  @Column({ type: 'text', default: '' })
   article: string
 
   @Column({ name: 'recent_topics', type: 'simple-array', default: '' })
@@ -21,13 +21,13 @@ export class StudentKnowledgeBase {
   @Column({ name: 'effective_methods', type: 'simple-array', default: '' })
   effectiveMethods: string[]
 
-  @Column({ name: 'lesson_plans_digest', default: '' })
+  @Column({ type: 'text', name: 'lesson_plans_digest', default: '' })
   lessonPlansDigest: string
 
-  @Column({ name: 'quiz_history_summary', default: '' })
+  @Column({ type: 'text', name: 'quiz_history_summary', default: '' })
   quizHistorySummary: string
 
-  @Column({ default: 1 })
+  @Column({ type: 'int', default: 1 })
   version: number
 
   @UpdateDateColumn({ name: 'updated_at' })

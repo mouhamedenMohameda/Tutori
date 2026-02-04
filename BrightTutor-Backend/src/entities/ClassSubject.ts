@@ -4,13 +4,13 @@ import { Subject } from './Subject'
 
 @Entity('class_subjects')
 export class ClassSubject {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'class_id' })
+  @Column({ type: 'uuid', name: 'class_id' })
   classId: string
 
-  @Column({ name: 'subject_id' })
+  @Column({ type: 'uuid', name: 'subject_id' })
   subjectId: string
 
   @ManyToOne(() => Class, { onDelete: 'CASCADE' })

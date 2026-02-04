@@ -4,25 +4,25 @@ import { StudentParent } from './StudentParent'
 
 @Entity('parents')
 export class Parent {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'parent_name' })
+  @Column({ type: 'varchar', name: 'parent_name' })
   name: string
 
-  @Column({ name: 'parent_username', unique: true })
+  @Column({ type: 'varchar', name: 'parent_username', unique: true })
   username: string
 
-  @Column({ name: 'parent_password' })
+  @Column({ type: 'varchar', name: 'parent_password' })
   password: string
 
-  @Column({ name: 'parent_email' })
+  @Column({ type: 'varchar', name: 'parent_email' })
   email: string
 
-  @Column({ name: 'parent_phone', nullable: true })
+  @Column({ type: 'varchar', name: 'parent_phone', nullable: true })
   phone: string | null
 
-  @Column({ name: 'school_id' })
+  @Column({ type: 'uuid', name: 'school_id' })
   schoolId: string
 
   @CreateDateColumn({ name: 'created_at' })

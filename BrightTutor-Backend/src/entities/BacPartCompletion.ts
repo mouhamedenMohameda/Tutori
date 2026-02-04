@@ -3,28 +3,28 @@ import { Student } from './Student'
 
 @Entity('bac_part_completions')
 export class BacPartCompletion {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'student_id' })
+  @Column({ type: 'uuid', name: 'student_id' })
   studentId: string
 
-  @Column({ name: 'exercise_id' })
+  @Column({ type: 'varchar', name: 'exercise_id' })
   exerciseId: string
 
-  @Column({ name: 'part_id' })
+  @Column({ type: 'varchar', name: 'part_id' })
   partId: string
 
-  @Column({ default: 0 })
+  @Column({ type: 'int', default: 0 })
   attempts: number
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   completed: boolean
 
   @Column({ type: 'float', default: 0 })
   score: number
 
-  @Column({ name: 'time_spent', default: 0 })
+  @Column({ type: 'int', name: 'time_spent', default: 0 })
   timeSpent: number
 
   @Column({ name: 'completed_at', type: 'timestamp', nullable: true })

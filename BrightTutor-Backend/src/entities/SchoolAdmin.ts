@@ -3,22 +3,22 @@ import { School } from './School'
 
 @Entity('school_admins')
 export class SchoolAdmin {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'school_id' })
+  @Column({ type: 'uuid', name: 'school_id' })
   schoolId: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   email: string
 
-  @Column({ name: 'password_hash' })
+  @Column({ type: 'varchar', name: 'password_hash' })
   passwordHash: string
 
-  @Column({ name: 'full_name' })
+  @Column({ type: 'varchar', name: 'full_name' })
   fullName: string
 
-  @Column({ default: 'TEACHER' })
+  @Column({ type: 'varchar', default: 'TEACHER' })
   role: string
 
   @CreateDateColumn({ name: 'created_at' })

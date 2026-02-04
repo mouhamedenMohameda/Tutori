@@ -3,22 +3,22 @@ import { Student } from './Student'
 
 @Entity('quiz_sessions')
 export class QuizSession {
-  @PrimaryColumn()
+  @PrimaryColumn('uuid')
   id: string
 
-  @Column({ name: 'student_id' })
+  @Column({ type: 'uuid', name: 'student_id' })
   studentId: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   subject: string
 
-  @Column()
+  @Column({ type: 'text' })
   questions: string
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   answers: string | null
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   results: string | null
 
   @Column({ type: 'int', nullable: true })
@@ -39,7 +39,7 @@ export class QuizSession {
   @Column({ name: 'end_time', type: 'timestamp', nullable: true })
   endTime: Date | null
 
-  @Column({ default: 'active' })
+  @Column({ type: 'varchar', default: 'active' })
   status: string
 
   @CreateDateColumn({ name: 'created_at' })
