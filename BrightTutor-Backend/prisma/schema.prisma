@@ -3,7 +3,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native"]
 }
 
 datasource db {
@@ -19,7 +19,7 @@ datasource db {
 // Subscription Status: PENDING, ACTIVE, SUSPENDED, REJECTED, EXPIRED
 
 model School {
-  id           String  @id @default(cuid())
+  id           String  @id @default(uuid())
   schoolName   String  @map("school_name")
   domainName   String? @unique @map("domain_name") // Optional custom domain
   contactEmail String  @map("contact_email")
@@ -70,7 +70,7 @@ model School {
 }
 
 model SchoolAdmin {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   schoolId     String   @map("school_id")
   email        String // Removed @unique - now unique per school
   passwordHash String   @map("password_hash")
@@ -91,7 +91,7 @@ model SchoolAdmin {
 // ===================================
 
 model Subject {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   schoolId    String   @map("school_id")
   name        String   @map("name")
   description String?  @map("description")
@@ -113,7 +113,7 @@ model Subject {
 }
 
 model Class {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   schoolId     String   @map("school_id")
   gradeLevel   String   @map("grade_level") // "Grade 1", "Grade 2", etc.
   className    String   @map("class_name") // "Grade 1A", "Mathematics Advanced"
@@ -140,7 +140,7 @@ model Class {
 
 // Junction table for many-to-many class-subject relationship
 model ClassSubject {
-  id        String @id @default(cuid())
+  id        String @id @default(uuid())
   classId   String @map("class_id")
   subjectId String @map("subject_id")
 
@@ -153,7 +153,7 @@ model ClassSubject {
 }
 
 model CurriculumMonthly {
-  id                 String   @id @default(cuid())
+  id                 String   @id @default(uuid())
   classId            String   @map("class_id")
   month              Int // 1-12
   year               Int
@@ -171,7 +171,7 @@ model CurriculumMonthly {
 }
 
 model Student {
-  id                    String    @id @default(cuid())
+  id                    String    @id @default(uuid())
   schoolId              String    @map("school_id")
   classId               String?   @map("class_id") // Made optional - students can be created without a class
   studentName           String    @map("student_name")
@@ -222,7 +222,7 @@ model Student {
 
 // NEW: AI PERSONALITY PROFILE PER STUDENT
 model AIPersonality {
-  id        String  @id @default(cuid())
+  id        String  @id @default(uuid())
   studentId String  @unique @map("student_id")
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -252,7 +252,7 @@ model AIPersonality {
 }
 
 model AIConversation {
-  id                String  @id @default(cuid())
+  id                String  @id @default(uuid())
   studentId         String  @map("student_id")
   messageType       String  @map("message_type") // TEXT, VOICE, IMAGE
   studentMessage    String  @map("student_message")
@@ -279,7 +279,7 @@ model AIConversation {
 }
 
 model MonthlyReport {
-  id                 String   @id @default(cuid())
+  id                 String   @id @default(uuid())
   studentId          String   @map("student_id")
   month              Int // 1-12
   year               Int
@@ -303,7 +303,7 @@ model MonthlyReport {
 // ===================================
 
 model Teacher {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   name      String   @map("teacher_name")
   email     String   @map("teacher_email") // Removed @unique - now unique per school
   password  String   @map("teacher_password")
@@ -324,7 +324,7 @@ model Teacher {
 
 // NEW: ASSIGNMENTS SYSTEM
 model Assignment {
-  id        String @id @default(cuid())
+  id        String @id @default(uuid())
   teacherId String @map("teacher_id")
   schoolId  String @map("school_id")
   classId   String @map("class_id")
@@ -365,7 +365,7 @@ model Assignment {
 
 // NEW: ASSIGNMENT PROGRESS TRACKING
 model AssignmentProgress {
-  id           String @id @default(cuid())
+  id           String @id @default(uuid())
   assignmentId String @map("assignment_id")
   studentId    String @map("student_id")
 
@@ -391,7 +391,7 @@ model AssignmentProgress {
 }
 
 model Parent {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   name      String   @map("parent_name")
   username  String   @unique @map("parent_username") // Auto-generated like "ahmed47"
   password  String   @map("parent_password") // Auto-generated like "kj29mz"
@@ -411,7 +411,7 @@ model Parent {
 
 // Junction table for many-to-many teacher-class relationship
 model TeacherClass {
-  id        String  @id @default(cuid())
+  id        String  @id @default(uuid())
   teacherId String  @map("teacher_id")
   classId   String  @map("class_id")
   subject   String? @map("subject") // Optional: what subject they teach for this class
@@ -426,7 +426,7 @@ model TeacherClass {
 
 // Junction table for many-to-many student-parent relationship
 model StudentParent {
-  id        String @id @default(cuid())
+  id        String @id @default(uuid())
   studentId String @map("student_id")
   parentId  String @map("parent_id")
 
@@ -440,7 +440,7 @@ model StudentParent {
 
 // Platform Admin (Super Admin) - separate from school admins
 model PlatformAdmin {
-  id        String    @id @default(cuid())
+  id        String    @id @default(uuid())
   email     String    @unique
   password  String // Hashed
   fullName  String    @map("full_name")
@@ -455,7 +455,7 @@ model PlatformAdmin {
 
 // NEW: Student AI Context for personalized learning
 model StudentAIContext {
-  id        String @id @default(cuid())
+  id        String @id @default(uuid())
   studentId String @map("student_id")
   subject   String @map("subject")
   schoolId  String @map("school_id")
@@ -487,7 +487,7 @@ model StudentAIContext {
 
 // BILLION DOLLAR METRICS: Student Engagement Tracking
 model StudentEngagement {
-  id                String   @id @default(cuid())
+  id                String   @id @default(uuid())
   studentId         String   @map("student_id")
   date              DateTime @default(now()) @map("date")
   chatMessages      Int      @default(0) @map("chat_messages")
@@ -505,7 +505,7 @@ model StudentEngagement {
 
 // ANALYTICS: Screen-level session tracking for detailed analytics
 model StudentSession {
-  id            String    @id @default(cuid())
+  id            String    @id @default(uuid())
   studentId     String    @map("student_id")
   date          DateTime  @default(now()) @map("date") // Date only (for grouping by day)
   sessionStart  DateTime  @default(now()) @map("session_start")
@@ -531,7 +531,7 @@ model StudentSession {
 }
 
 model QuizSession {
-  id             String    @id @default(cuid())
+  id             String    @id @default(uuid())
   studentId      String    @map("student_id")
   subject        String    @map("subject")
   questions      String    @map("questions") // JSON string of quiz questions
@@ -555,7 +555,7 @@ model QuizSession {
 
 // Persistent student knowledge base (subject-agnostic consolidated memory)
 model StudentKnowledgeBase {
-  id        String @id @default(cuid())
+  id        String @id @default(uuid())
   studentId String @unique @map("student_id")
 
   // Compact, human-readable article for the tutor (periodically summarized)
@@ -581,7 +581,7 @@ model StudentKnowledgeBase {
 
 // Push Notification Tokens for Mobile App
 model StudentPushToken {
-  id            String   @id @default(cuid())
+  id            String   @id @default(uuid())
   studentId     String   @map("student_id")
   expoPushToken String   @map("expo_push_token")
   platform      String   @default("unknown") // "ios" | "android" | "unknown"
@@ -601,7 +601,7 @@ model StudentPushToken {
 // Students in the same classroomYear can chat together (like WhatsApp groups)
 // Only keeps latest 50 messages per classroomYear (oldest deleted automatically)
 model CommunityMessage {
-  id               String   @id @default(cuid())
+  id               String   @id @default(uuid())
   studentId        String   @map("student_id")
   classroomYear    String   @map("classroom_year") // PREMIER_COLLEGE, DEUXIEME_COLLEGE, TROISIEME_COLLEGE, QUATRIEME_COLLEGE
   message          String   @map("message")
@@ -621,7 +621,7 @@ model CommunityMessage {
 // ═══════════════════════════════════════════════════════════════
 
 model BacExercise {
-  id             String   @id @default(cuid())
+  id             String   @id @default(uuid())
   studentId      String   @map("student_id")
   exerciseId     String   @map("exercise_id") // Format: "bac-2023-ex1", "bac-2023-ex2", etc.
   currentPartId  String   @map("current_part_id") // Format: "1a", "1b", "2a", etc.
@@ -641,7 +641,7 @@ model BacExercise {
 }
 
 model BacPartCompletion {
-  id          String    @id @default(cuid())
+  id          String    @id @default(uuid())
   studentId   String    @map("student_id")
   exerciseId  String    @map("exercise_id") // "bac-2023-ex1"
   partId      String    @map("part_id") // "1a", "1b", etc.
@@ -665,7 +665,7 @@ model BacPartCompletion {
 // Multiple courses per exercise allowed - keeps all generated courses
 // When a course is rated better than others, inferior courses are deleted
 model BacCourseCache {
-  id            String   @id @default(cuid())
+  id            String   @id @default(uuid())
   exerciseId    String   @map("exercise_id") // "bac-2023-ex1"
   courseContent String   @map("course_content") // Full course content generated by AI
   averageRating Float    @default(0) @map("average_rating") // Average of all ratings (1-5)
@@ -684,7 +684,7 @@ model BacCourseCache {
 // Questions are pre-generated once and reused for all students
 // This ensures fast loading without AI generation delays
 model BacQuestionCache {
-  id         String   @id @default(cuid())
+  id         String   @id @default(uuid())
   exerciseId String   @map("exercise_id") // "bac-2023-ex1"
   partId     String   @map("part_id") // "1a", "1b", etc.
   question   String   @map("question") // Pre-generated question text
@@ -705,7 +705,7 @@ model BacQuestionCache {
 // Stores complete BAC exercises (one per chapter) with all their parts
 // This replaces dynamic generation - exercises are generated once and reused
 model StoredBacExercise {
-  id            String   @id @default(cuid())
+  id            String   @id @default(uuid())
   chapterId     String   @map("chapter_id") // e.g., "bac-2023", "bac-d-2023", "bac-physique-2023"
   exerciseId    String   @map("exercise_id") // e.g., "bac-2023-ex1", "bac-2023-ex2"
   title         String   @map("title")
@@ -741,7 +741,7 @@ model StoredBacExercise {
 // Stores individual parts of a stored BAC exercise
 // Each part contains the generated question and metadata
 model StoredBacExercisePart {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   exerciseId String   @map("exercise_id") // Reference to StoredBacExercise
   partId      String   @map("part_id") // e.g., "1a", "1b", "1c"
   question    String   @map("question") // Generated question content (markdown with LaTeX)

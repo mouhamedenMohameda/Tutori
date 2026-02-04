@@ -29,10 +29,29 @@ function fixAliases(dir) {
       const relativeToRoot = path.relative(path.dirname(fullPath), path.resolve(__dirname, 'dist'));
       const relativePath = relativeToRoot || '.';
       
-      // Replace @/ with relative path
-      const newContent = content.replace(
+      // Replace @/ with relative path in require()
+      let newContent = content.replace(
         /require\(["']@\//g, 
         `require("${relativePath}/`
+      );
+      
+      // Replace @/ with relative path in dynamic import() and add .js extension
+      newContent = newContent.replace(
+        /import\(["']@\/([^"']+)["']\)/g, 
+        (match, p1) => {
+          // Add .js if not already present
+          const withExt = p1.endsWith('.js') ? p1 : p1 + '.js';
+          return `import("${relativePath}/${withExt}")`;
+        }
+      );
+      
+      // Also fix relative dynamic imports without .js extension
+      newContent = newContent.replace(
+        /import\(["'](\.[^"']+)["']\)/g,
+        (match, p1) => {
+          if (p1.endsWith('.js') || p1.endsWith('.json')) return match;
+          return `import("${p1}.js")`;
+        }
       );
       
       if (content !== newContent) {

@@ -1,0 +1,31 @@
+id,name,city,verified,source
+1,American International School of Nouakchott (AISN),Nouakchott,yes,https://www.aisnmauritania.com/
+2,Lycée Français Théodore Monod (LFTM),Nouakchott,yes,http://www.lftm-mr.net/
+3,TLC International School,Nouakchott,no,https://monecole.sciaut.org/schools/char/T/
+4,Menabi El Ouloum,Nouakchott,yes,https://menabielouloum.org/
+5,École Privée l'Éclosion,Nouakchott,yes,https://eclosion.mr/
+6,Lycée Les Méharées,Nouakchott,yes,https://lyceeprivelesmeharees.com/
+7,Lycée des Cadres de Nouakchott (EDC),Nouakchott,yes,https://www.lycee-des-cadres-de-nouakchott.com/
+8,École Internationale de Nouakchott,Nouakchott,no,https://ecoleinternationalenktt.wordpress.com/
+9,Al Baraka School,Nouakchott,no,https://www.ecosysaction.org/webdevelopment/la_case_des_ecoliers/mauritanieLeecoleAlBaraka-de-Nouakchott.html
+10,ABC International / ABC Kids,Nouakchott,no,https://www.schoolandcollegelistings.com/
+11,Les Etoiles de Nouakchott,Nouakchott,no,https://www.facebook.com/ecolelesetoilesnktt/
+12,École privée La Fontaine,Nouakchott,no,https://www.facebook.com/rcolepriveelafontaine/
+13,Ecole Pythagore Almoravides,Nouakchott,no,https://www.schoolandcollegelistings.com/
+14,El-Karma Centre,Nouakchott,no,https://www.schoolandcollegelistings.com/
+15,El Mouhamedia / المدارس المحمدية الحديثة,Nouakchott,no,https://www.schoolandcollegelistings.com/
+16,Groupe Scolaire Privé Petit Centre,Nouakchott,yes,https://www.petitcentre.com/
+17,Écoles Privées Cheikh Moussa,Nouakchott,yes,https://ecolescheikhmoussa.com/
+18,Ecole Privée Dounya,Nouakchott,yes,https://msgg.gov.mr/JO/2023/mauritanie-jo-2023-1546.pdf
+19,New Birth School / Cambridge International School (Nouakchott),Nouakchott,no,https://www.teacherhorizons.com/schools?countries=Mauritania
+20,Complexe des écoles privés Al Ayan,Nouakchott,no,https://www.schoolandcollegelistings.com/
+21,Fondation de l'Académie de Football 'Renaissance FC' (school program),Nouakchott,no,https://www.schoolandcollegelistings.com/
+22,Ecole Les Etoiles / Les Étoiles,Nouakchott,no,https://www.facebook.com/ecolelesetoilesnktt/
+23,Ecole Hakili (or HakiliAction),Nouakchott,no,https://www.mlfmonde.org/etablissements/
+24,Petit Centre (another listing),Nouakchott,yes,https://www.petitcentre.com/
+25,Ecole Privée L'Eclosion (duplicate entry normalized),Nouakchott,yes,https://eclosion.mr/
+26,TLC / TLC International (duplicate normalized),Nouakchott,no,https://monecole.sciaut.org/schools/char/T/
+27,Lycee Francais Theodore Monod (duplicate normalized),Nouakchott,yes,http://www.lftm-mr.net/
+28,American International School of Nouakchott (duplicate normalized),Nouakchott,yes,https://www.aisnmauritania.com/
+29,Ecole Privée HakiliAction (duplicate normalized),Nouakchott,no,https://www.mlfmonde.org/etablissements/
+30,Menabi El Ouloum (duplicate normalized),Nouakchott,yes,https://menabielouloum.org/

@@ -4,6 +4,7 @@
  * streak, track-session, treasure-opened, unlock-next-section, push-token
  */
 import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { getCurriculum, getNextSection, mapClassroomYearToCurriculumYear } from '@/lib/curriculum/curriculum-loader'
 import { generateMapFromCurriculum } from '@/lib/map/map-generator'
@@ -117,6 +118,8 @@ export async function register(body: {
     const adminEmail = `admin.${selectedSchool.name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}@tutori.io`
     const defaultPassword = 'TempPassword123!'
     const hashedPassword = await bcrypt.hash(defaultPassword, 10)
+    // Generate a proper UUID for adminUserId
+    const adminUserId = randomUUID()
     school = await retryOperation(() =>
       prisma.school.create({
         data: {
@@ -125,7 +128,7 @@ export async function register(body: {
           contactPhone: null,
           wilaya: 'ولاية نواكشوط الشمالية',
           address: selectedSchool.city || 'Nouakchott',
-          adminUserId: `admin_${Date.now()}_${selectedSchool.id}`,
+          adminUserId,
           adminName: `${selectedSchool.name} Admin`,
           adminEmail,
           adminPassword: hashedPassword,
