@@ -71,6 +71,9 @@ router.get('/language-preference/:studentId', languagePreferenceGet)
 // PUT /language-preference/:studentId
 router.put('/language-preference/:studentId', languagePreferencePut)
 
+// PATCH /language-preference/:studentId (mobile app compatibility)
+router.patch('/language-preference/:studentId', languagePreferencePut)
+
 // GET /quiz-subjects/:studentId
 router.get('/quiz-subjects/:studentId', quizSubjects)
 

@@ -24,13 +24,13 @@ export class StoredBacExercise {
   @Column({ type: 'varchar', default: 'Moyen' })
   difficulty: string
 
-  @Column({ type: 'simple-array', default: '' })
+  @Column({ type: 'text', array: true, default: [] })
   concepts: string[]
 
-  @Column({ type: 'simple-array', default: '' })
+  @Column({ type: 'text', array: true, default: [] })
   objectives: string[]
 
-  @Column({ name: 'part_sequence', type: 'simple-array', default: '' })
+  @Column({ name: 'part_sequence', type: 'text', array: true, default: [] })
   partSequence: string[]
 
   @Column({ type: 'text', name: 'enonce_complet', nullable: true })

@@ -15,7 +15,7 @@ export class BacExercise {
   @Column({ type: 'varchar', name: 'current_part_id' })
   currentPartId: string
 
-  @Column({ name: 'completed_parts', type: 'simple-array', default: '' })
+  @Column({ name: 'completed_parts', type: 'text', array: true, default: [] })
   completedParts: string[]
 
   @Column({ type: 'int', name: 'total_score', default: 0 })

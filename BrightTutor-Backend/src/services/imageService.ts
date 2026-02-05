@@ -8,6 +8,28 @@ export type AnalyzeImageResult = {
   usingMockOCR: boolean
 }
 
+export async function analyzeImageFromUrl(
+  imageUrl: string
+): Promise<AnalyzeImageResult> {
+  try {
+    // Fetch image from URL
+    const response = await fetch(imageUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`)
+    }
+    const contentType = response.headers.get('content-type') || 'image/jpeg'
+    const buffer = Buffer.from(await response.arrayBuffer())
+    return await analyzeImage(buffer, contentType)
+  } catch (error) {
+    console.error('Error fetching image from URL:', error)
+    return {
+      extractedText: generateMockText(),
+      confidence: 0.8,
+      usingMockOCR: true,
+    }
+  }
+}
+
 export async function analyzeImage(
   buffer: Buffer,
   mimetype?: string

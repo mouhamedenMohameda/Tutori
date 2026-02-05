@@ -166,6 +166,31 @@ export async function getCurrent(
   totalScore: number
   startedAt: Date | null
   lastAccessedAt: Date | null
+  // New fields for complete exercise data
+  exerciseTitle?: string
+  exerciseDescription?: string
+  currentPartData?: {
+    question: string
+    difficulty?: string
+    type?: string
+  }
+  progress?: {
+    completed: number
+    total: number
+    percentage: number
+  }
+  allParts?: Array<{
+    id: string
+    question: string
+    completed: boolean
+    generating?: boolean
+  }>
+  courseNotes?: {
+    description?: string
+    concepts?: string[]
+    objectives?: string[]
+  }
+  isStoredExercise?: boolean
 }> {
   let exercise = await getOrCreateBacExercise(studentId, exerciseId)
   if (requestedPartId && requestedPartId !== exercise.currentPartId) {
@@ -174,6 +199,92 @@ export async function getCurrent(
       exercise = await changeCurrentPart(studentId, exerciseId, requestedPartId)
     }
   }
+
+  // Extract baseExerciseId (remove timestamp suffix if present)
+  const baseExerciseId = exerciseId.replace(/-\d{10,}$/, '').replace(/-gen-\d+$/, '').replace(/-var\d+-\d+$/, '')
+  
+  // Determine chapterId based on exerciseId
+  // For new stored exercises, chapterId = baseExerciseId (e.g., bac-2023-systemes-lineaires)
+  // For old system, chapterId was a generic category
+  const isBacD = baseExerciseId.includes('bac-d-')
+  const isPhysics = baseExerciseId.includes('physique')
+  const isScience = baseExerciseId.includes('science')
+  // Use baseExerciseId as chapterId since stored exercises use exerciseId as chapterId
+  const chapterId = baseExerciseId
+
+  // Try to get stored exercise with full questions
+  const storedExercise = await getStoredBacExercise(chapterId, exerciseId)
+  
+  // If no exact match, try to get a random one for this base exercise
+  let selectedStoredExercise = storedExercise
+  if (!selectedStoredExercise) {
+    // Get random stored exercise for this base exercise ID
+    const randomResult = await getRandomStoredExerciseWithParts(chapterId, baseExerciseId)
+    if (randomResult) {
+      selectedStoredExercise = randomResult
+    }
+  }
+
+  // Build allParts from stored exercise or fallback to part sequence
+  let allParts: Array<{ id: string; question: string; completed: boolean; generating: boolean }> = []
+  let currentPartData: { question: string; difficulty?: string; type?: string } | undefined
+  let courseNotes: { description?: string; concepts?: string[]; objectives?: string[] } | undefined
+  let exerciseTitle = baseExerciseId.replace(/-/g, ' ')
+  let exerciseDescription = ''
+
+  if (selectedStoredExercise && selectedStoredExercise.parts && selectedStoredExercise.parts.length > 0) {
+    // Use stored exercise data
+    exerciseTitle = selectedStoredExercise.title
+    exerciseDescription = selectedStoredExercise.description
+    courseNotes = {
+      description: selectedStoredExercise.description,
+      concepts: selectedStoredExercise.concepts || [],
+      objectives: selectedStoredExercise.objectives || [],
+    }
+    
+    allParts = selectedStoredExercise.parts.map((part) => ({
+      id: part.partId,
+      question: part.question,
+      completed: exercise.completedParts.includes(part.partId),
+      generating: false,
+    }))
+
+    // Find current part data - if not found, use first part
+    let currentPartInfo = selectedStoredExercise.parts.find(p => p.partId === exercise.currentPartId)
+    
+    // If currentPartId doesn't match any stored part, reset to first part
+    if (!currentPartInfo && selectedStoredExercise.parts.length > 0) {
+      currentPartInfo = selectedStoredExercise.parts[0]
+      // Update exercise.currentPartId to the first part's ID
+      exercise.currentPartId = currentPartInfo.partId
+    }
+    
+    if (currentPartInfo) {
+      currentPartData = {
+        question: currentPartInfo.question,
+        difficulty: currentPartInfo.difficulty || selectedStoredExercise.difficulty,
+        type: currentPartInfo.type,
+      }
+    }
+  } else {
+    // Fallback: use part sequence without questions (requires generation)
+    const sequence = getPartSequence(exerciseId)
+    allParts = sequence.map((partId) => ({
+      id: partId,
+      question: `Question pour partie ${partId} - Exercice non trouvé en base de données`,
+      completed: exercise.completedParts.includes(partId),
+      generating: false,
+    }))
+    currentPartData = {
+      question: `Question pour partie ${exercise.currentPartId} - Exercice non trouvé en base de données`,
+      difficulty: 'Moyen',
+      type: 'calcul',
+    }
+  }
+
+  const total = allParts.length || 1
+  const completed = exercise.completedParts.length
+
   return {
     exerciseId: exercise.exerciseId,
     currentPartId: exercise.currentPartId,
@@ -181,6 +292,181 @@ export async function getCurrent(
     totalScore: exercise.totalScore,
     startedAt: exercise.startedAt,
     lastAccessedAt: exercise.lastAccessedAt,
+    // New fields
+    exerciseTitle,
+    exerciseDescription,
+    currentPartData,
+    progress: {
+      completed,
+      total,
+      percentage: Math.round((completed / total) * 100),
+    },
+    allParts,
+    courseNotes,
+    isStoredExercise: selectedStoredExercise !== null && selectedStoredExercise !== undefined,
+  }
+}
+
+/**
+ * Get a random stored exercise with all parts for a base exercise ID
+ */
+async function getRandomStoredExerciseWithParts(
+  chapterId: string,
+  baseExerciseId: string
+): Promise<{
+  id: string
+  chapterId: string
+  exerciseId: string
+  title: string
+  description: string
+  subject: string
+  difficulty: string
+  concepts: string[]
+  objectives: string[]
+  parts: Array<{ id: string; partId: string; question: string; type: string; difficulty: string; validated: boolean; orderIndex: number }>
+} | null> {
+  try {
+    const ds = await getDataSource()
+    const repo = ds.getRepository(StoredBacExercise)
+    
+    // Find all active exercises that match the base exercise ID
+    const exercises = await repo.find({
+      where: [
+        { chapterId, exerciseId: baseExerciseId, isActive: true },
+        { chapterId, exerciseId: Like(`${baseExerciseId}-%`), isActive: true },
+      ],
+      relations: ['parts'],
+    })
+
+    if (exercises.length === 0) return null
+
+    // Pick a random exercise
+    const idx = Math.floor(Math.random() * exercises.length)
+    const selected = exercises[idx]
+
+    // Sort parts by orderIndex
+    const parts = (selected.parts || []).slice().sort((a, b) => a.orderIndex - b.orderIndex)
+
+    return {
+      id: selected.id,
+      chapterId: selected.chapterId,
+      exerciseId: selected.exerciseId,
+      title: selected.title,
+      description: selected.description,
+      subject: selected.subject,
+      difficulty: selected.difficulty,
+      concepts: selected.concepts || [],
+      objectives: selected.objectives || [],
+      parts: parts.map((p) => ({
+        id: p.id,
+        partId: p.partId,
+        question: p.question,
+        type: p.type,
+        difficulty: p.difficulty,
+        validated: p.validated,
+        orderIndex: p.orderIndex,
+      })),
+    }
+  } catch (error) {
+    console.error('Error getting random stored exercise with parts:', error)
+    return null
+  }
+}
+
+/**
+ * Get course/lesson content for an exercise
+ */
+export async function getCourse(exerciseId: string): Promise<{
+  exerciseId: string
+  title: string
+  content: string
+  concepts: string[]
+} | null> {
+  try {
+    const ds = await getDataSource()
+    const exercise = await ds.getRepository(StoredBacExercise).findOne({
+      where: { exerciseId },
+    })
+    if (!exercise) return null
+    
+    return {
+      exerciseId: exercise.exerciseId,
+      title: exercise.title || `Cours pour ${exerciseId}`,
+      content: exercise.description || '',
+      concepts: exercise.subject ? [exercise.subject] : [],
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Generate course/lesson content for an exercise (placeholder - returns existing data)
+ */
+export async function generateCourse(exerciseId: string, _studentId: string): Promise<{
+  exerciseId: string
+  title: string
+  content: string
+  concepts: string[]
+  generated: boolean
+}> {
+  // For now, return existing exercise data or a placeholder
+  const existing = await getCourse(exerciseId)
+  if (existing) {
+    return { ...existing, generated: false }
+  }
+  
+  return {
+    exerciseId,
+    title: `Cours pour ${exerciseId}`,
+    content: 'Contenu du cours à générer...',
+    concepts: [],
+    generated: true,
+  }
+}
+
+/**
+ * Start or resume an exercise for a student
+ */
+export async function startExerciseForStudent(
+  studentId: string,
+  exerciseId: string
+): Promise<{
+  exerciseState: {
+    exerciseId: string
+    currentPartId: string
+    completedParts: string[]
+    totalScore: number
+    startedAt: Date | null
+    lastAccessedAt: Date | null
+  }
+  currentPart: {
+    partId: string
+    status: string
+  } | null
+}> {
+  // Get or create the exercise state
+  const exercise = await getOrCreateBacExercise(studentId, exerciseId)
+  
+  // Get part progress if exists
+  const partProgress = await getBacPartProgress(studentId, exerciseId, exercise.currentPartId)
+  
+  return {
+    exerciseState: {
+      exerciseId: exercise.exerciseId,
+      currentPartId: exercise.currentPartId,
+      completedParts: exercise.completedParts,
+      totalScore: exercise.totalScore,
+      startedAt: exercise.startedAt,
+      lastAccessedAt: exercise.lastAccessedAt,
+    },
+    currentPart: partProgress ? {
+      partId: exercise.currentPartId,
+      status: 'in_progress',
+    } : {
+      partId: exercise.currentPartId,
+      status: 'not_started',
+    },
   }
 }
 

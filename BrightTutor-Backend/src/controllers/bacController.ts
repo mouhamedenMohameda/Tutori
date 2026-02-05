@@ -15,6 +15,9 @@ import {
   clearPartProgress,
   completePart,
   getCurrent,
+  getCourse as getCourseService,
+  generateCourse as generateCourseService,
+  startExerciseForStudent,
   deleteStoredExercise,
   getRandomStoredExercise,
   getStoredExercisesByChapter,
@@ -203,6 +206,127 @@ export async function current(req: Request, res: Response): Promise<void> {
     res.json({ success: true, ...data })
   } catch (error) {
     sendSanitizedError(res, error, 'bac/current')
+  }
+}
+
+// Alias for mobile app compatibility
+export async function currentState(req: Request, res: Response): Promise<void> {
+  try {
+    const studentId = requireStudent(req, res)
+    if (!studentId) return
+    const exerciseId = (req.query.exerciseId as string) || 'bac-2023-ex1'
+    const requestedPartId = req.query.partId as string | undefined
+    const data = await getCurrent(studentId, exerciseId, requestedPartId)
+    res.json({ success: true, ...data })
+  } catch (error) {
+    sendSanitizedError(res, error, 'bac/current-state')
+  }
+}
+
+// GET /bac/tokens with query params (for mobile app)
+export async function tokensQuery(req: Request, res: Response): Promise<void> {
+  try {
+    const studentId = requireStudent(req, res)
+    if (!studentId) return
+    const data = await getTokens(studentId)
+    res.json({ success: true, ...data })
+  } catch (error) {
+    sendSanitizedError(res, error, 'bac/tokens')
+  }
+}
+
+// GET /bac/part-progress with query params (for mobile app)
+export async function partProgressGetQuery(req: Request, res: Response): Promise<void> {
+  try {
+    const studentId = requireStudent(req, res)
+    if (!studentId) return
+    const exerciseId = req.query.exerciseId as string
+    const partId = req.query.partId as string
+    if (!exerciseId || !partId) {
+      res.status(400).json({ error: 'exerciseId and partId required' })
+      return
+    }
+    const data = await getPartProgress(studentId, exerciseId, partId)
+    res.json({ success: true, ...data })
+  } catch (error) {
+    sendSanitizedError(res, error, 'bac/part-progress')
+  }
+}
+
+// GET /bac/course - get existing course for an exercise
+export async function getCourse(req: Request, res: Response): Promise<void> {
+  try {
+    const exerciseId = req.query.exerciseId as string
+    if (!exerciseId) {
+      res.status(400).json({ error: 'exerciseId required' })
+      return
+    }
+    const course = await getCourseService(exerciseId)
+    if (!course) {
+      res.status(404).json({ error: 'Course not found' })
+      return
+    }
+    res.json(course)
+  } catch (error) {
+    sendSanitizedError(res, error, 'bac/course')
+  }
+}
+
+// POST /bac/course - generate a new course for an exercise
+export async function generateCourse(req: Request, res: Response): Promise<void> {
+  try {
+    const studentId = requireStudent(req, res)
+    if (!studentId) return
+    const { exerciseId } = req.body || {}
+    if (!exerciseId) {
+      res.status(400).json({ error: 'exerciseId required' })
+      return
+    }
+    const course = await generateCourseService(exerciseId, studentId)
+    res.json(course)
+  } catch (error) {
+    sendSanitizedError(res, error, 'bac/course')
+  }
+}
+
+// POST /bac/start-exercise - start or resume an exercise
+export async function startExercise(req: Request, res: Response): Promise<void> {
+  try {
+    const studentId = requireStudent(req, res)
+    if (!studentId) return
+    const { exerciseId } = req.body || {}
+    if (!exerciseId) {
+      res.status(400).json({ error: 'exerciseId required' })
+      return
+    }
+    const result = await startExerciseForStudent(studentId, exerciseId)
+    res.json(result)
+  } catch (error) {
+    sendSanitizedError(res, error, 'bac/start-exercise')
+  }
+}
+
+// GET /bac/check-exercise-exists (for mobile app)
+export async function checkExerciseExistsGet(req: Request, res: Response): Promise<void> {
+  try {
+    const exerciseId = req.query.exerciseId as string
+    if (!exerciseId) {
+      res.status(400).json({ error: 'exerciseId required' })
+      return
+    }
+    // Parse exerciseId to get chapterId and baseExerciseId
+    // Format: bac-{type}-{year}-ex{number} e.g., bac-c-2023-ex1
+    const parts = exerciseId.split('-')
+    if (parts.length < 4) {
+      res.json({ exists: false })
+      return
+    }
+    const chapterId = `${parts[0]}-${parts[1]}-${parts[2]}` // e.g., bac-c-2023
+    const baseExerciseId = parts.slice(3).join('-') // e.g., ex1
+    const result = await checkExerciseExists({ chapterId, baseExerciseId })
+    res.json({ exists: result.exists || false })
+  } catch (error) {
+    res.json({ exists: false })
   }
 }
 

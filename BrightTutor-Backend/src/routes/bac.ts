@@ -7,11 +7,17 @@ import {
   progress,
   progressAll,
   tokens,
+  tokensQuery,
   partProgressGet,
+  partProgressGetQuery,
   partProgressPost,
   partProgressDelete,
   complete,
   current,
+  currentState,
+  getCourse,
+  generateCourse,
+  startExercise,
   storedExerciseDelete,
   getRandomStoredExerciseHandler,
   storedExercisesByChapter,
@@ -20,6 +26,7 @@ import {
   chat,
   saveExercise,
   checkExerciseExistsHandler,
+  checkExerciseExistsGet,
   regenerateQuestionHandler,
   generateNewExercise,
   generateQuestionsHandler,
@@ -34,10 +41,16 @@ router.get('/progress', progress)
 // GET /bac/progress-all
 router.get('/progress-all', progressAll)
 
-// GET /bac/tokens/:studentId
+// GET /bac/tokens (query params - for mobile app)
+router.get('/tokens', tokensQuery)
+
+// GET /bac/tokens/:studentId (path params - legacy)
 router.get('/tokens/:studentId', tokens)
 
-// GET /bac/part-progress/:studentId/:exerciseId/:partId
+// GET /bac/part-progress (query params - for mobile app)
+router.get('/part-progress', partProgressGetQuery)
+
+// GET /bac/part-progress/:studentId/:exerciseId/:partId (path params - legacy)
 router.get('/part-progress/:studentId/:exerciseId/:partId', partProgressGet)
 
 // POST /bac/part-progress/:studentId/:exerciseId/:partId
@@ -51,6 +64,18 @@ router.post('/complete', complete)
 
 // GET /bac/current
 router.get('/current', current)
+
+// GET /bac/current-state (alias for mobile app)
+router.get('/current-state', currentState)
+
+// GET /bac/course - get existing course
+router.get('/course', getCourse)
+
+// POST /bac/course - generate new course
+router.post('/course', generateCourse)
+
+// POST /bac/start-exercise - start or resume an exercise
+router.post('/start-exercise', startExercise)
 
 // DELETE /bac/stored-exercise
 router.delete('/stored-exercise', storedExerciseDelete)
@@ -72,6 +97,9 @@ router.post('/chat', chat)
 
 // POST /bac/save-exercise (dev only)
 router.post('/save-exercise', saveExercise)
+
+// GET /bac/check-exercise-exists (for mobile app)
+router.get('/check-exercise-exists', checkExerciseExistsGet)
 
 // POST /bac/check-exercise-exists (dev only)
 router.post('/check-exercise-exists', checkExerciseExistsHandler)
